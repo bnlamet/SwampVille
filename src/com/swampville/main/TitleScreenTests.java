@@ -3,7 +3,6 @@ package com.swampville.main;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import java.awt.Component;
-import javax.swing.JFrame;
 
 /**
  * @author Mark Betters
@@ -15,46 +14,46 @@ Briana Lamet
  */
 public class TitleScreenTests {
 
-	TitleScreen testTitle = new TitleScreen(new JFrame());
+	TitleScreen testTitle = new TitleScreen();
 	
 	@Test
 	public void transitionToGameScreenTest() {
 		Component origComps[] = testTitle.frame.getComponents();
-		testTitle.transitionToGameScreen("easy");
+		//testTitle.transitionToGameScreen("easy");
 		Component newComps[] = testTitle.frame.getComponents();
 		assertEquals(false, newComps.equals(origComps));
 	}
 	
 	@Test
 	public void initializeScreenTest() {
-		assertEquals(true, testTitle.playBtn.isEnabled());
-		assertEquals(true, testTitle.instructionsBtn.isEnabled());
-		assertEquals(true, testTitle.leaderboardBtn.isEnabled());
+		assertEquals(true, testTitle.btnPlay.isEnabled());
+		assertEquals(true, testTitle.btnHelp.isEnabled());
+		assertEquals(true, testTitle.btnLeaderboard.isEnabled());
 	}
 	
 	@Test
 	public void playBtnPressedTest(){
-		assertEquals(false, testTitle.playBtn.isEnabled());
-		assertEquals(false, testTitle.instructionsBtn.isEnabled());
-		assertEquals(false, testTitle.leaderboardBtn.isEnabled());
+		assertEquals(false, testTitle.btnPlay.isEnabled());
+		assertEquals(false, testTitle.btnHelp.isEnabled());
+		assertEquals(false, testTitle.btnLeaderboard.isEnabled());
 
-		assertEquals(true, testTitle.easyDifficulty.isEnabled());
-		assertEquals(true, testTitle.mediumDifficulty.isEnabled());
-		assertEquals(true, testTitle.hardDifficulty.isEnabled());
+		assertEquals(true, testTitle.btnEasy.isEnabled());
+		assertEquals(true, testTitle.btnMedium.isEnabled());
+		assertEquals(true, testTitle.btnHard.isEnabled());
 	}
 	
 	@Test
 	public void instructionsBtnPressedTest() {
-		assertEquals(false, testTitle.playBtn.isEnabled());
-		assertEquals(false, testTitle.instructionsBtn.isEnabled());
-		assertEquals(false, testTitle.leaderboardBtn.isEnabled());
+		assertEquals(false, testTitle.btnPlay.isEnabled());
+		assertEquals(false, testTitle.btnHelp.isEnabled());
+		assertEquals(false, testTitle.btnHelp.isEnabled());
 	}
 	
 	@Test
 	public void leaderboardsBtnPressedTest() {
-		assertEquals(false, testTitle.playBtn.isEnabled());
-		assertEquals(false, testTitle.instructionsBtn.isEnabled());
-		assertEquals(false, testTitle.leaderboardBtn.isEnabled());		
+		assertEquals(false, testTitle.btnPlay.isEnabled());
+		assertEquals(false, testTitle.btnHelp.isEnabled());
+		assertEquals(false, testTitle.btnLeaderboard.isEnabled());		
 	}	
 
 }

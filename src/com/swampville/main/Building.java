@@ -10,24 +10,43 @@ Briana Lamet
  */
 public enum Building {
 	
-	WINDFARM (1,2,3),
-	NATURERESERVE (4,5,6),
-	RESEARCHLAB(7,8,9);
+	//For now, the meters are just ppl, $, env
+	
+	//NOTE: The name properties of the different cases 
+	//should be set to the respective image asset file names.
+	//Meter effects are the numbers and the 4th num is cost
+	OILREFINERY(0, 20, -2, 100, "Oil Refinery"),
+	WINDFARM(0,1,1,20, "Windfarm"),
+	SCHOOL(5,3,0,150, "School"),
+	HOUSE(2,0,-1,10, "House"),
+	FARM(0,4,4,80, "Farm"),
+	BOAT(1,1,-1,5, "Boat");
 	//etc
 	
 	int meterEffect1;
 	int meterEffect2;
 	int meterEffect3;
 	
+	int cost;
+	
+	String name;
+	
 	/**
 	 * @param meterEffect1
 	 * @param meterEffect2
 	 * @param meterEffect3
 	 */
-	Building(int meterEffect1, int meterEffect2, int meterEffect3) {
+	Building(int meterEffect1, int meterEffect2, int meterEffect3, int cost, String name) {
 		this.meterEffect1 = meterEffect1;
 		this.meterEffect2 = meterEffect2;
 		this.meterEffect3 = meterEffect3;
+		this.cost = cost;
+		this.name = name;
+	}
+	
+	@Override
+	public String toString() {
+		return this.name;
 	}
 	
 }
