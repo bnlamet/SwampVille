@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,6 +30,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -61,7 +63,7 @@ public class GameScreen implements Runnable {
 	int mouseXCorr, mouseYCorr;
 	int previousMouseXCorr, previousMouseYCorr;
 	TimeFrame t;
-	
+	int animationCount = 0;
 	JLabel environmentLbl;
 	JLabel pplLbl;
 	JLabel moneyLbl;
@@ -100,6 +102,7 @@ public class GameScreen implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	
 	}
 	
 	/**
@@ -254,7 +257,6 @@ public class GameScreen implements Runnable {
 			e1.printStackTrace();
 		}
 		
-		
 		//Add gridPanel to the game frame, in first panel
 		this.frame.getContentPane().add(gridPanel, "cell 0 0 1 6,grow");
 		
@@ -342,11 +344,54 @@ public class GameScreen implements Runnable {
 		if(gamePaused == false){
 			updateMeters();
 			makinMagic(); //build stuff
+			updateBuildings();
 		}
 		////////////////ADJUST END TIME/////////////////////////
 		
-		if (t.getMinutes() == 3) {
-			transitionToFutureScreen();
+		if (t.getMinutes() == 1) {
+			new LeaderboardScreen(frame, -1);
+		}
+	
+		if (animationCount < 4) {
+			animationCount++;
+		}
+		else {
+			animationCount = 0;
+		}
+		
+	}
+	
+	public void updateBuildings() throws IOException{
+		
+		for (int x = 0; x < 14; x++) {
+			for (int y = 0; y < 9; y++) {
+				if (buildingCodes[x][y] > 3) {
+					
+					int xCoor = x * 50;
+					int yCoor = y * 50;
+					if (buildingCodes[x][y] == 5){ // Oil Refinery
+						System.out.println("attempting to animate " + animationCount);
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")), xCoor, yCoor, this.gridPanel);
+					}
+					if (buildingCodes[x][y] == 6){ // Windfarm
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor, yCoor, this.gridPanel);
+					}
+					if (buildingCodes[x][y] == 7){ // School
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")), xCoor, yCoor, this.gridPanel);
+					}
+					if (buildingCodes[x][y] == 8){ // House
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")), xCoor, yCoor, this.gridPanel);
+					}
+					if (buildingCodes[x][y] == 9){ // Farm
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), xCoor, yCoor, this.gridPanel);
+					}
+					if (buildingCodes[x][y] == 4){ // Boat
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")), xCoor, yCoor, this.gridPanel);
+					}
+					
+				}
+				
+			}
 		}
 		
 	}
@@ -404,10 +449,27 @@ public class GameScreen implements Runnable {
 					this.timeToBuild = false;
 				}
 				else{
+					
 					this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/" + this.currentlySelectedBuilding + ".png")), this.mouseXCorr, this.mouseYCorr, this.gridPanel);
 					this.addBuilding(this.currentlySelectedBuilding);
-					buildingCodes[xCode][yCode] = 3; //set code to occupied by land building
+					
+					if (this.currentlySelectedBuilding == "Oil Refinery"){
+						buildingCodes[xCode][yCode] = 5;
+					}
+					if (this.currentlySelectedBuilding == "Windfarm"){
+						buildingCodes[xCode][yCode] = 6;
+					}
+					if (this.currentlySelectedBuilding == "School"){
+						buildingCodes[xCode][yCode] = 7;
+					}
+					if (this.currentlySelectedBuilding == "House"){
+						buildingCodes[xCode][yCode] = 8;
+					}
+					if (this.currentlySelectedBuilding == "Farm"){
+						buildingCodes[xCode][yCode] = 9;
+					}
 					this.timeToBuild = false;
+
 				}
 			}
 			if(buildCode == 2){ //not buildable tile
@@ -415,9 +477,10 @@ public class GameScreen implements Runnable {
 						"ERROR", JOptionPane.WARNING_MESSAGE);
 				this.timeToBuild = false;
 			}
-			if((buildCode == 3)||(buildCode == 4)){ //occupied
+			if(buildCode > 3){ //occupied
 				JOptionPane.showMessageDialog(frame,"This tile is full. Select a new tile.",
 						"ERROR", JOptionPane.WARNING_MESSAGE);
+				
 				this.timeToBuild = false;
 			}
 		}
