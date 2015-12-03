@@ -18,8 +18,10 @@ public class TitleScreen {
 	JButton btnPlay;
 	JButton btnHelp;
 	JButton btnLeaderboard;
-
-	Sound s = new Sound();
+	
+	JButton btnEasy;
+	JButton btnMedium;
+	JButton btnHard;
 	
 	/**
 	 * The title screen is the first thing seen by the user. 
@@ -36,7 +38,6 @@ public class TitleScreen {
 	public TitleScreen(JFrame frame) {
 		this.frame =  frame;
 		this.initializeScreen();
-		frame.revalidate();
 	}
 	
 	/**
@@ -50,7 +51,7 @@ public class TitleScreen {
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
 		
-		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 500);
+		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 480);
 		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][][][]"));
 		
 		//frame.getContentPane().setBackground(Color.BLACK);
@@ -66,7 +67,6 @@ public class TitleScreen {
 		btnPlay = new JButton("Play");
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				try {
 					playBtnPressed();
 				} catch (IOException e1) {
@@ -81,7 +81,6 @@ public class TitleScreen {
 		btnHelp = new JButton("Help");
 		btnHelp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				instructionsBtnPressed();
 			}
 		});
@@ -91,7 +90,6 @@ public class TitleScreen {
 		btnLeaderboard = new JButton("Leaderboard");
 		btnLeaderboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				leaderboardsBtnPressed();
 			}
 		});
@@ -121,6 +119,49 @@ public class TitleScreen {
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		this.transitionToGameScreen("Easy");
+		
+		/*btnEasy = new JButton("Easy");
+		btnEasy.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					transitionToGameScreen("Easy");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnEasy.setBounds(163, 150, 117, 29);
+		frame.add(btnEasy);
+		
+		btnMedium = new JButton("Medium");
+		btnMedium.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					transitionToGameScreen("Medium");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnMedium.setBounds(163, 191, 117, 29);
+		frame.add(btnMedium);
+		
+		btnHard = new JButton("Hard");
+		btnHard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					transitionToGameScreen("Hard");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnHard.setBounds(163, 232, 117, 29);
+		frame.add(btnHard);
+		*/
 	}
 	
 	/**
@@ -144,8 +185,6 @@ public class TitleScreen {
 	 * in order to transition to LeaderboardScreen. 
 	 */
 	public void leaderboardsBtnPressed() {
-		frame.getContentPane().removeAll();
-		frame.getContentPane().repaint();
 		new LeaderboardScreen(frame, -1);
 		
 //		Use negative integer in order to test and

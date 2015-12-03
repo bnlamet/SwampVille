@@ -1,6 +1,5 @@
 package com.swampville.main;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -18,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,6 +30,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -41,23 +42,11 @@ public class GameScreen implements Runnable {
 
 	Tile[][] grid;
 	JPanel gridPanel;
-
+	
 	Tile currentlySelectedTile;
-
+	
 	boolean tileHighlighted = false;
-
-	boolean gameActive = false;
 	
-	String future;
-
-	int buildAnimationLength = 150;
-	int buildAnimationCounter = 0;
-	
-	int infoAnimationLength = 42;
-	int infoAnimationCounter = 0;
-	
-	int timeLimit = 10;
-
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
 	int gridWidth;
@@ -75,617 +64,529 @@ public class GameScreen implements Runnable {
 	int previousMouseXCorr, previousMouseYCorr;
 	TimeFrame t;
 	int animationCount = 0;
-	Meter envMeter, pplMeter, timeMeter;
+	JLabel environmentLbl;
+	JLabel pplLbl;
 	JLabel moneyLbl;
 	boolean gamePaused = false;
-	int boatCount; // to prevent overfishing
+	int boatCount; //to prevent overfishing
 	int environmentLblDelta;
 	int pplLblDelta;
 	int moneyLblDelta;
-	int oneSecCounter = 0;
-	int[][] buildingCodes = { { 0, 0, 0, 0, 0, 2, 2, 1, 1 }, { 0, 0, 0, 0, 2, 2, 1, 1, 1 },
-			{ 0, 0, 0, 0, 2, 1, 1, 1, 1 }, { 0, 0, 0, 0, 2, 2, 2, 1, 1 }, { 2, 0, 0, 2, 2, 2, 2, 2, 1 },
-			{ 2, 2, 2, 2, 2, 0, 0, 2, 1 }, { 2, 0, 0, 2, 0, 0, 2, 2, 1 }, { 0, 0, 2, 2, 0, 0, 0, 2, 1 },
-			{ 0, 2, 2, 2, 0, 0, 0, 2, 1 }, { 2, 2, 2, 0, 0, 0, 0, 2, 1 }, { 2, 2, 2, 0, 0, 0, 0, 2, 1 },
-			{ 0, 2, 2, 0, 0, 2, 2, 2, 1 }, { 2, 2, 2, 2, 2, 2, 2, 1, 1 }, { 0, 0, 0, 2, 2, 1, 1, 1, 1 } };
-
+	int[][] buildingCodes = {{0,0,0,0,0,2,2,1,1},{0,0,0,0,2,2,1,1,1},{0,0,0,0,2,1,1,1,1},{0,0,0,0,2,2,2,1,1},{2,0,0,2,2,2,2,2,1},{2,2,2,2,2,0,0,2,1},{2,0,0,2,0,0,2,2,1},{0,0,2,2,0,0,0,2,1},{0,2,2,2,0,0,0,2,1},{2,2,2,0,0,0,0,2,1},{2,2,2,0,0,0,0,2,1},{0,2,2,0,0,2,2,2,1},{2,2,2,2,2,2,2,1,1},{0,0,0,2,2,1,1,1,1}};
+	
 	MigLayout gameLayout = new MigLayout("fill, insets 0", "[max][max]", "[max][max][max][max][max][max]");
-
+	
 	/**
 	 * @param frame
 	 * @param difficulty
 	 * @throws IOException
 	 */
 	public GameScreen(JFrame frame, String difficulty) throws IOException {
-
+		
 		this.difficulty = difficulty;
 		this.frame = frame;
+		this.initializeRandomEvents();
 		this.initializeGameScreen();
-		gameActive = true;
-
-		ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
-		executor2.scheduleAtFixedRate(this, 0, 1, TimeUnit.MILLISECONDS);
+		
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+		executor.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
 	}
-
+	
 	@Override
 	public void run() {
-
-		// Put code to repaint meters in here, if necessary.
-
+		
+		//Put code to repaint meters in here, if necessary.
+		
 		try {
 			this.updateInOneSec();
-			this.update();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+	
 	}
-
+	
 	/**
 	 * @return
 	 */
 	public Meter[] getMeters() {
 		return this.meters;
 	}
-
+	
 	public void setBuildingsToBuildingList(Collection<Building> buildings) {
 		this.buildings = buildings;
 	}
-
+	
 	public void setMetersToMeterList(Meter[] meters) {
 		this.meters = meters;
 	}
-
+	
 	/**
-	 * Setup Tile grid on frame. Put buttons and timer on frame.
+	 *Setup Tile grid on frame.
+	 *Put buttons and timer on frame.
 	 *
-	 * Adjusted so that the frame is resized to fit the screen, then the
-	 * components are added in a more orderly fashion: first the grid, followed
-	 * by the three meters, and finally the famous buttons.
+	 *Adjusted so that the frame is resized to fit the screen, 
+	 *then the components are added in a more orderly fashion:
+	 *first the grid, followed by the three meters, and finally
+	 *the famous buttons.
 	 */
 	public void initializeGameScreen() {
-
-		// Setting the frame's layout before adding everything makes it so that
+		
+		// Setting the frame's layout before adding everything makes it so that 
 		// we are not dealing with the title screen's MigLayout anymore, which
-		// stops everything from shifting. I think. Regardless, it works as of
-		// now.
-
+		// stops everything from shifting. I think. Regardless, it works as of now.
+		
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		Toolkit tk = Toolkit.getDefaultToolkit();
-		Rectangle screenSize = new Rectangle((new Point(0, 0)), tk.getScreenSize());
+		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
 		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 480);
 		frame.getContentPane().setLayout(gameLayout);
-
+		
 		this.initializeGrid();
 		this.initializeMeters();
-
+		
 		this.drawGridlines();
-
-		for (Component comp : this.frame.getContentPane().getComponents()) {
+		
+		for (Component comp: this.frame.getContentPane().getComponents()) {
 			System.out.println(comp);
 		}
-
-		//////////////// ADDING STOP TO GAME FRAME/////////////////////////
-
+		
+		////////////////ADDING STOP TO GAME FRAME/////////////////////////
+		
 		stop = new JButton("Pause");
-
+		
 		try {
 			BufferedImage stopImg = ImageIO.read(new File("src/swampimages/stop.png"));
 			stop.setIcon(new ImageIcon(stopImg));
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		stop.addActionListener(new Pauses());
 		frame.getContentPane().add(stop, "cell 1 3,grow");
 
-		//////////////// ADDING HAMMER TO GAME FRAME/////////////////////////
-
+		////////////////ADDING HAMMER TO GAME FRAME/////////////////////////
+		
 		hammer = new JButton("Build");
-
+		
+		
 		try {
 			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
 			hammer.setIcon(new ImageIcon(hammerImg));
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		hammer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				triggerBuildPopup();
-				toggleButtons(false);
+				hammer.setEnabled(false);
 			}
 		});
 		frame.getContentPane().add(hammer, "cell 1 4,grow");
-
-		//////////////// ADDING TIME TO GAME FRAME/////////////////////////
-
+		
+		////////////////ADDING TIME TO GAME FRAME/////////////////////////
+		
 		t = new TimeFrame();
-		frame.getContentPane().add(t, "cell 1 5,grow, center");
-
+        frame.getContentPane().add(t, "cell 1 5,grow");
+		
 		/////////////////////////////////////////////////////////////
-
-		// Create pop-up for the building list for later use
+		
+        // Create pop-up for the building list for later use
 		buildPopup = new JFrame();
 		createBuildPanel();
 	}
-
+	
 	public void initializeMeters() {
-
-		// Create Env. meter
-		/*
-		 * JPanel environment = new JPanel(); environmentLbl = new JLabel("50");
-		 * ImageIcon environmentImg = new
-		 * ImageIcon("src/swampimages/environment.png");
-		 * environmentLbl.setIcon(environmentImg);
-		 * environment.add(environmentLbl);
-		 */
-
-		JLabel envImg = new JLabel();
+		
+		//Create Env. meter
+		JPanel environment = new JPanel();
+		environmentLbl = new JLabel("0");
 		ImageIcon environmentImg = new ImageIcon("src/swampimages/environment.png");
-		envImg.setIcon(environmentImg);
-		envMeter = new Meter(35, 50, 100, 20);
-		envMeter.add(envImg, BorderLayout.WEST);
-
-		// Create People meter
-		/*
-		 * JPanel people = new JPanel(); pplLbl = new JLabel("10"); ImageIcon
-		 * peopleImg = new ImageIcon("src/swampimages/people.png");
-		 * pplLbl.setIcon(peopleImg); people.add(pplLbl);
-		 */
-
-		JLabel pplImg = new JLabel();
-		ImageIcon pplIcon = new ImageIcon("src/swampimages/people.png");
-		pplImg.setIcon(pplIcon);
-		pplMeter = new Meter(35, 49, 100, 20);
-		pplMeter.add(pplImg, BorderLayout.WEST);
-
-		// Create Money Meter
+		environmentLbl.setIcon(environmentImg);
+		environment.add(environmentLbl);
+		
+		//Create People meter
+		JPanel people = new JPanel();
+		pplLbl = new JLabel("0");
+		ImageIcon peopleImg = new ImageIcon("src/swampimages/people.png");
+		pplLbl.setIcon(peopleImg);
+		people.add(pplLbl);
+		
+		//Create Money Meter
 		JPanel money = new JPanel();
-		moneyLbl = new JLabel("100");
+		moneyLbl = new JLabel("0");
 		ImageIcon moneyImg = new ImageIcon("src/swampimages/money.png");
 		moneyLbl.setIcon(moneyImg);
 		money.add(moneyLbl);
-
-		/*
-		 * JPanel maxPop = new JPanel(); maxPopLbl = new JLabel("10"); ImageIcon
-		 * maxPopImg = new ImageIcon("src/swampimages/maxpop.png");
-		 * maxPopLbl.setIcon(maxPopImg); maxPop.add(maxPopLbl);
-		 */
-
-		// Add to frame
-		this.frame.getContentPane().add(envMeter, "cell 1 0,grow, center");
-		this.frame.getContentPane().add(pplMeter, "cell 1 1,grow");
+		
+		//Add to frame
+		this.frame.getContentPane().add(environment, "cell 1 0,grow");
+		this.frame.getContentPane().add(people, "cell 1 1,grow");
 		this.frame.getContentPane().add(money, "cell 1 2,grow");
-
-		envMeter.setFillWidth(30);
-		pplMeter.setFillWidth(2);
-
-		envMeter.repaint();
+		
+//		this.frame.getContentPane().add(new JButton("test"), "cell 1 0 3 1,grow");
+//		JLabel testLabel = new JLabel("testing");
+//		JPanel testPanel = new JPanel();
+//		testPanel.add(testLabel);
+//		this.frame.getContentPane().add(testPanel, "cell 1 1 3 1,grow");
+//		this.frame.getContentPane().add(new JButton("test3"), "cell 1 2 3 1,grow");
 	}
-
-	public int[] gridCorr(int mouseX, int mouseY) {
-		int gridX = mouseX / 50;
-		int gridY = mouseY / 50;
-		int[] coordinates = { gridX * 50, gridY * 50 };
+	
+	public int[] gridCorr(int mouseX, int mouseY){
+		int gridX = mouseX/50;
+		int gridY = mouseY/50;
+		int[] coordinates = {gridX*50,gridY*50};
 		return coordinates;
 	}
-
+	
 	public void initializeGrid() {
 		this.gridPanel = new JPanel();
-
-		// Set up the grid image, put it on a JLabel
-		// Add JLabel to subpanel containing grid
+		
+		//Set up the grid image, put it on a JLabel
+		//Add JLabel to subpanel containing grid
 		BufferedImage gridImg;
 		try {
 			gridImg = ImageIO.read(new File("src/swampimages/easyswamp.png"));
 			JLabel gridLabel = new JLabel();
 			gridLabel.setIcon(new ImageIcon(gridImg));
-			gridPanel.setLayout(new MigLayout("fill, insets 0", "", ""));
-			gridPanel.add(gridLabel, "aligny top");
+			gridPanel.setLayout(new MigLayout("fill, insets 0","",""));
+			gridPanel.add(gridLabel,"aligny top");
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-
-		// Add gridPanel to the game frame, in first panel
+		
+		//Add gridPanel to the game frame, in first panel
 		this.frame.getContentPane().add(gridPanel, "cell 0 0 1 6,grow");
-
-		// Add mouseListener to track the coordinates of the mouse clicks
-		this.gridPanel.addMouseListener(new MouseAdapter() {
+		
+		//Add mouseListener to track the coordinates of the mouse clicks
+		this.gridPanel.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				previousMouseXCorr = mouseXCorr;
 				previousMouseYCorr = mouseYCorr;
 				mouseXCorr = gridCorr(e.getX(), e.getY())[0];
 				mouseYCorr = gridCorr(e.getX(), e.getY())[1];
-
-				if (buildingCodes[mouseXCorr / 50][mouseYCorr / 50] == 2) {
-					JOptionPane.showMessageDialog(frame, "You can't build here. Select a new tile.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+				
+				if (buildingCodes[mouseXCorr/50][mouseYCorr/50] == 2){
+					JOptionPane.showMessageDialog(frame,"You can't build here. Select a new tile.",
+							"ERROR", JOptionPane.WARNING_MESSAGE);
 					mouseXCorr = previousMouseXCorr;
 					mouseYCorr = previousMouseYCorr;
 					return;
 				} else {
 					highlightTileLogic(mouseXCorr, mouseYCorr);
 				}
-				// For Testing Purposes:
+				//For Testing Purposes:
 				System.out.println(mouseXCorr + ", " + mouseYCorr);
 			}
 		});
 	}
 	
-	private int calculateScore() {
-
-		future = "";
-
-		for (int i = 0; i < 50; i++) {
-			updateMeters();
-		}
-		int finalEnvScore = envMeter.getValue() * 3;
-		double finalPplScore = pplMeter.getValue() * 1.5;
-		int finalMoney = getMoney();
-
-		int finalScore = finalEnvScore + (int) finalPplScore + finalMoney;
-
-		if (envMeter.getValue() < 50) {
-			finalScore -= 2000;
-
-			future += "Your enviornment would be worse off than when you started.\nRemember, you can sustain a population while maintaining a healthy estuary!\nBalance is key!!\n\n";
-
-		}
-		if (pplMeter.getValue() < 10) {
-			finalScore -= 1000;
-			future += "You would end up with less people than you started with!\n Balance is a big part of having a healthy human-enivornment relationship.\n\n";
-		}
-		if (getMoney() < 0) {
-			finalScore -= 10 * Math.abs(getMoney());
-			future += "You would be $" + Math.abs(getMoney())
-					+ " in debt! Managing an economy and an ecosystem can be hard, but it's doable!\nTry again to see if you can do better!\n\n";
-		}
-
-		if (finalScore < 0)
-			finalScore = 0;
-
-		if (finalScore == 0)
-			future += "Your final score was " + finalScore
-					+ "!\nThink you can do better? ... You can't really do worse.";
-		else
-			future += "Your final score was " + finalScore + "!\nThink you can do better?";
-
-		return finalScore;
+	/**
+	 *Initialize list of events.
+	 *Initialize eventTimes.
+	 */
+	public void initializeRandomEvents() {
+		
 	}
-
+	
+	/**
+	 *For each Tile in the grid, 
+	 *if the Tile has a Building on it, 
+	 *get that Building's meterEffects,
+	 *then update the meters according 
+	 *to those meterEffects.
+	 */
+	public void updateMetersInOneSec() {
+		
+	}
+	
 	/**
 	 * Initialize pausePopup & put in foreground
 	 */
 	public void pauseGame() {
-		gamePaused = true;
-		t.getTimer().pauseTimer();
-		toggleButtons(false);
+		
+		
+		
 	}
-
-	public void resumeGame() {
-		gamePaused = false;
-		t.getTimer().startTimer();
-		toggleButtons(true);
-	}
-
-	private void toggleButtons(boolean set) {
-		hammer.setEnabled(set);
-		stop.setEnabled(set);
-	}
-
+	
 	/**
-	 * Put up buildPopup. Populate buildPopup with Building options based on
-	 * difficulty String. Put in exitPopup & confirmBuild buttons.
+	 * Put up buildPopup.
+	 * Populate buildPopup with Building options
+	 * based on difficulty String.
+	 * Put in exitPopup & confirmBuild buttons.
 	 */
 	public void triggerBuildPopup() {
-
+		
 		buildPopup.setVisible(true);
 		buildPopup.requestFocus();
-		// frame.getContentPane().repaint();
+		//frame.getContentPane().repaint();
 	}
-
-	private void update() {
-		oneSecCounter++;
-		buildAnimationCounter++;
-		infoAnimationCounter++;
-		try {
-			makinMagic();
-			updateBuildings();
-			
-			if (buildAnimationCounter >= buildAnimationLength) {
-				buildAnimationCounter = 0;
-				if (animationCount < 4) {
-					animationCount++;
-				} else {
-					animationCount = 0;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
+	
 	/**
-	 * Calls updateMetersInOneSec(). Updates JLabel timer. If timer at any of
-	 * the eventTimes, then call triggerEvent() on respective event. If timer at
-	 * 0 seconds, then call transitionToFutureScreen().
+	 * Calls updateMetersInOneSec().
+	 * Updates JLabel timer.
+	 * If timer at any of the eventTimes,
+	 * then call triggerEvent() on respective event.
+	 * If timer at 0 seconds, 
+	 * then call transitionToFutureScreen().
 	 * 
-	 * The if loop with t.getTime() decides when the game ends. *can be
-	 * t.getMintues() or t.getSeconds()
+	 * The if loop with t.getTime() decides when the 
+	 * game ends.
+	 * *can be t.getMintues() or t.getSeconds()
 	 * 
-	 * @throws IOException
+	 * @throws IOException 
 	 */
 	public void updateInOneSec() throws IOException {
-		// System.out.println("updateInOneSec");
-		if (gameActive && oneSecCounter >= 1000) {
-			oneSecCounter = 0;
-			if (gamePaused == false) {
-				updateMeters();
-			}
-
-			if (t.getSeconds() == timeLimit) {
-				transitionToFutureScreen(calculateScore(), future);
-			}
-
+		//System.out.println("updateInOneSec");
+		if(gamePaused == false){
+			updateMeters();
+			makinMagic(); //build stuff
+			updateBuildings();
 		}
+		////////////////ADJUST END TIME/////////////////////////
+		
+		if (t.getMinutes() == 1) {
+			new LeaderboardScreen(frame, -1);
+		}
+	
+		if (animationCount < 4) {
+			animationCount++;
+		}
+		else {
+			animationCount = 0;
+		}
+		
 	}
-
-	public void updateBuildings() throws IOException {
-
+	
+	public void updateBuildings() throws IOException{
+		
 		for (int x = 0; x < 14; x++) {
 			for (int y = 0; y < 9; y++) {
 				if (buildingCodes[x][y] > 3) {
-
+					
 					int xCoor = x * 50;
 					int yCoor = y * 50;
-					if (buildingCodes[x][y] == 5) { // Oil Refinery
-						int yCoorT = yCoor;
-						while (yCoorT > yCoor - 50) {
-							yCoorT--;
-						}
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(
-									ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")),
-									xCoor, yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 5){ // Oil Refinery
+						System.out.println("attempting to animate " + animationCount);
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")), xCoor, yCoor, this.gridPanel);
 					}
-					if (buildingCodes[x][y] == 6) { // Windfarm
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(
-									ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor,
-									yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 6){ // Windfarm
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor, yCoor, this.gridPanel);
 					}
-					if (buildingCodes[x][y] == 7) { // School
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 7){ // School
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")), xCoor, yCoor, this.gridPanel);
 					}
-					if (buildingCodes[x][y] == 8) { // House
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 8){ // House
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")), xCoor, yCoor, this.gridPanel);
 					}
-					if (buildingCodes[x][y] == 9) { // Farm
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 9){ // Farm
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), xCoor, yCoor, this.gridPanel);
 					}
-					if (buildingCodes[x][y] == 4) { // Boat
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
+					if (buildingCodes[x][y] == 4){ // Boat
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")), xCoor, yCoor, this.gridPanel);
 					}
-
+					
 				}
-
+				
 			}
 		}
-
+		
 	}
-
-	public void updateMeters() {
-		int peopleModifier = (int) (pplMeter.getValue() * .01);
-		int extraCash = moneyLblDelta + (moneyLblDelta * peopleModifier);
-		this.moneyLbl.setText(Integer.toString(getMoney() + extraCash));
-
-		envMeter.changeMeter(environmentLblDelta);
-		envMeter.repaint();
-
-		pplMeter.changeMeter(pplLblDelta);
-		pplMeter.repaint();
-
+	
+	public void updateMeters(){
+		this.pplLbl.setText(Integer.toString(Integer.valueOf(this.pplLbl.getText()) + this.pplLblDelta));
+		this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) + this.moneyLblDelta));
+		this.environmentLbl.setText(Integer.toString(Integer.valueOf(this.environmentLbl.getText()) + this.environmentLblDelta));
 	}
-
-	public int getMoney() {
-		return Integer.valueOf(moneyLbl.getText());
-	}
-
-	public void makinMagic() throws IOException {
+	
+	public void makinMagic() throws IOException{
 		if (this.timeToBuild == true) {
-			int xCode = mouseXCorr / 50;
-			int yCode = mouseYCorr / 50;
+			int xCode = mouseXCorr/50;
+			int yCode = mouseYCorr/50;
 			System.out.print(xCode + "," + yCode + "\n");
 			int buildCode = buildingCodes[xCode][yCode];
-			System.out.print("Building code: " + buildCode + "\n"); // print the
-																	// buildcode
-																	// of the
-																	// selected
-																	// tile
-
-			if (buildCode == 1) { // water
-				if (this.currentlySelectedBuilding.equals("Boat")) { // if boat
-					if (boatCount >= 5) {
-						JOptionPane.showMessageDialog(frame,
-								"WARNING! Building this boat will cause over-fishing."
-										+ " \n Over-fishing negatively impacts the environment (-10 env/sec).",
+			System.out.print("Building code: " + buildCode + "\n"); //print the buildcode of the selected tile
+			
+			if(buildCode == 1){ //water
+				if(this.currentlySelectedBuilding.equals("Boat")){ //if boat
+					if(boatCount >= 5){
+						JOptionPane.showMessageDialog(frame,"WARNING! Building this boat will cause over-fishing."
+								+ " \n Over-fishing negatively impacts the environment (-10 env/sec).",
 								"DANGER! DANGER!", JOptionPane.ERROR_MESSAGE);
 						boatCount += 1;
-						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
-								mouseXCorr, mouseYCorr, this.gridPanel);
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")), mouseXCorr, mouseYCorr, this.gridPanel);
 						this.addBuilding(this.currentlySelectedBuilding);
-						buildingCodes[xCode][yCode] = 4; // set code to occupied
-															// by water building
-
-						// change the environment effects of boats
-						// over fishing is happening so make the env meter get
-						// wrecked
-						this.environmentLblDelta -= 10;
-
+						buildingCodes[xCode][yCode] = 4; //set code to occupied by water building
+						
+						//change the environment effects of boats
+						//over fishing is happening so make the env meter get wrecked
+						this.environmentLblDelta-=10;
+						
 						this.timeToBuild = false;
 					}
-
-					else {
+					
+					else{
 						boatCount += 1;
-						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
-								mouseXCorr, mouseYCorr, this.gridPanel);
+						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")), mouseXCorr, mouseYCorr, this.gridPanel);
 						this.addBuilding(this.currentlySelectedBuilding);
-						buildingCodes[xCode][yCode] = 4; // set code to occupied
-															// by water building
+						buildingCodes[xCode][yCode] = 4; //set code to occupied by water building
 						this.timeToBuild = false;
 					}
-				} else { // if not a boat
-					JOptionPane.showMessageDialog(frame, "You can't build a building on water. Try again.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+				}
+				else{ //if not a boat
+					JOptionPane.showMessageDialog(frame,"You can't build a building on water. Try again.",
+							"ERROR", JOptionPane.WARNING_MESSAGE);
 					this.timeToBuild = false;
 				}
 			}
-			if (buildCode == 0) { // land
-				if (this.currentlySelectedBuilding.equals("Boat")) {
-					JOptionPane.showMessageDialog(frame, "You can't build a boat on land. Try again.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+			if(buildCode == 0){ //land
+				if(this.currentlySelectedBuilding.equals("Boat")){
+					JOptionPane.showMessageDialog(frame,"You can't build a boat on land. Try again.",
+							"ERROR", JOptionPane.WARNING_MESSAGE);
 					this.timeToBuild = false;
-				} else {
-
-					this.gridPanel.getGraphics().drawImage(
-							ImageIO.read(new File("src/swampimages/" + this.currentlySelectedBuilding + ".png")),
-							this.mouseXCorr, this.mouseYCorr, this.gridPanel);
+				}
+				else{
+					
+					this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/" + this.currentlySelectedBuilding + ".png")), this.mouseXCorr, this.mouseYCorr, this.gridPanel);
 					this.addBuilding(this.currentlySelectedBuilding);
-
-					if (this.currentlySelectedBuilding == "Oil Refinery") {
+					
+					if (this.currentlySelectedBuilding == "Oil Refinery"){
 						buildingCodes[xCode][yCode] = 5;
 					}
-					if (this.currentlySelectedBuilding == "Windfarm") {
+					if (this.currentlySelectedBuilding == "Windfarm"){
 						buildingCodes[xCode][yCode] = 6;
 					}
-					if (this.currentlySelectedBuilding == "School") {
+					if (this.currentlySelectedBuilding == "School"){
 						buildingCodes[xCode][yCode] = 7;
 					}
-					if (this.currentlySelectedBuilding == "House") {
+					if (this.currentlySelectedBuilding == "House"){
 						buildingCodes[xCode][yCode] = 8;
 					}
-					if (this.currentlySelectedBuilding == "Farm") {
+					if (this.currentlySelectedBuilding == "Farm"){
 						buildingCodes[xCode][yCode] = 9;
 					}
 					this.timeToBuild = false;
 
 				}
 			}
-			if (buildCode == 2) { // not buildable tile
-				JOptionPane.showMessageDialog(frame, "You can't build here. Select a new tile.", "ERROR",
-						JOptionPane.WARNING_MESSAGE);
+			if(buildCode == 2){ //not buildable tile
+				JOptionPane.showMessageDialog(frame,"You can't build here. Select a new tile.",
+						"ERROR", JOptionPane.WARNING_MESSAGE);
 				this.timeToBuild = false;
 			}
-			if (buildCode > 3) { // occupied
-				JOptionPane.showMessageDialog(frame, "This tile is full. Select a new tile.", "ERROR",
-						JOptionPane.WARNING_MESSAGE);
-
+			if(buildCode > 3){ //occupied
+				JOptionPane.showMessageDialog(frame,"This tile is full. Select a new tile.",
+						"ERROR", JOptionPane.WARNING_MESSAGE);
+				
 				this.timeToBuild = false;
 			}
 		}
 	}
-
+	
 	public void addBuilding(String buildingStr) {
-
+		
 		int newEnvironmentDelta = 0;
 		int newPeopleDelta = 0;
 		int newMoneyDelta = 0;
-
+		
 		if (buildingStr.equals("Boat")) {
-			newEnvironmentDelta = Building.BOAT.enviornmentEffect;
-			newPeopleDelta = Building.BOAT.peopleEffect;
-			newMoneyDelta = Building.BOAT.moneyEffect;
+			newEnvironmentDelta = Building.BOAT.meterEffect1;
+			newPeopleDelta = Building.BOAT.meterEffect2;
+			newMoneyDelta = Building.BOAT.meterEffect3;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.BOAT.cost));
 		}
 		if (buildingStr.equals("Farm")) {
-			newEnvironmentDelta = Building.FARM.enviornmentEffect;
-			newPeopleDelta = Building.FARM.peopleEffect;
-			newMoneyDelta = Building.FARM.moneyEffect;
+			newEnvironmentDelta = Building.FARM.meterEffect1;
+			newPeopleDelta = Building.FARM.meterEffect2;
+			newMoneyDelta = Building.FARM.meterEffect3;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.FARM.cost));
 		}
 		if (buildingStr.equals("House")) {
-			newEnvironmentDelta = Building.HOUSE.enviornmentEffect;
-			newPeopleDelta = Building.HOUSE.peopleEffect;
-			newMoneyDelta = Building.HOUSE.moneyEffect;
+			newEnvironmentDelta = Building.HOUSE.meterEffect1;
+			newPeopleDelta = Building.HOUSE.meterEffect2;
+			newMoneyDelta = Building.HOUSE.meterEffect3;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.HOUSE.cost));
 		}
 		if (buildingStr.equals("Oil Refinery")) {
-			newEnvironmentDelta = Building.OILREFINERY.enviornmentEffect;
-			newPeopleDelta = Building.OILREFINERY.peopleEffect;
-			newMoneyDelta = Building.OILREFINERY.moneyEffect;
-			this.moneyLbl
-					.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.OILREFINERY.cost));
+			newEnvironmentDelta = Building.OILREFINERY.meterEffect1;
+			newPeopleDelta = Building.OILREFINERY.meterEffect2;
+			newMoneyDelta = Building.OILREFINERY.meterEffect3;
+			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.OILREFINERY.cost));
 		}
 		if (buildingStr.equals("School")) {
-			newEnvironmentDelta = Building.SCHOOL.enviornmentEffect;
-			newPeopleDelta = Building.SCHOOL.peopleEffect;
-			newMoneyDelta = Building.SCHOOL.moneyEffect;
+			newEnvironmentDelta = Building.SCHOOL.meterEffect1;
+			newPeopleDelta = Building.SCHOOL.meterEffect2;
+			newMoneyDelta = Building.SCHOOL.meterEffect3;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.SCHOOL.cost));
 		}
 		if (buildingStr.equals("Windfarm")) {
-			newEnvironmentDelta = Building.WINDFARM.enviornmentEffect;
-			newPeopleDelta = Building.WINDFARM.peopleEffect;
-			newMoneyDelta = Building.WINDFARM.moneyEffect;
+			newEnvironmentDelta = Building.WINDFARM.meterEffect1;
+			newPeopleDelta = Building.WINDFARM.meterEffect2;
+			newMoneyDelta = Building.WINDFARM.meterEffect3;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.WINDFARM.cost));
 		}
-
+		
 		this.environmentLblDelta = this.environmentLblDelta + newEnvironmentDelta;
 		this.pplLblDelta = this.pplLblDelta + newPeopleDelta;
 		this.moneyLblDelta = this.moneyLblDelta + newMoneyDelta;
 	}
-
-	private void transitionToFutureScreen(int score, String future) {
-		toggleButtons(false);
-		gameActive = false;
-		if (buildPopup.isVisible())
-			buildPopup.setVisible(false);
+	
+	public void transitionToFutureScreen() {
+		//computes total score based on meters, 
+		//then passes that total score to FutureScreen
+		
 		frame.getContentPane().removeAll();
-		frame.getContentPane().repaint();
+		JLabel future = new JLabel("FUTUREEEEEE");
+		frame.getContentPane().add(future);
 		frame.getContentPane().revalidate();
-		new FutureScreen(frame, score, future);
 	}
-
-
+	
 	public void triggerEvent() {
-		// put up eventPopup
-		// update meters based on what the event is
+		//put up eventPopup
+		//update meters based on what the event is
 	}
-
+	
 	private void createBuildPanel() {
-		// frame.getContentPane().add(buildPopup, "cell 2 1,grow");
-
+		//frame.getContentPane().add(buildPopup, "cell 2 1,grow");
+		
 		ButtonGroup buildBtns = new ButtonGroup();
-
-		// buildPopup.setBorder(new BevelBorder(BevelBorder.RAISED, null, null,
-		// null, null));
+		
+		//buildPopup.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 		Rectangle frameRect = this.frame.getContentPane().getBounds();
 		buildPopup.setBounds(frameRect.x / 4, frameRect.y / 4, frameRect.width / 2, frameRect.height / 2);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 16, 129, 63, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 25, 25, 25, 25, 25, 25, 25, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gridBagLayout.columnWidths = new int[]{16, 129, 63, 0, 0};
+		gridBagLayout.rowHeights = new int[]{25, 25, 25, 25, 25, 25, 25, 0};
+		gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		buildPopup.setLayout(gridBagLayout);
-
+		
+		/*JLabel lblPic = new JLabel("What is this???");
+		GridBagConstraints gbc_lblPic = new GridBagConstraints();
+		gbc_lblPic.anchor = GridBagConstraints.NORTH;
+		gbc_lblPic.insets = new Insets(0, 0, 5, 5);
+		gbc_lblPic.gridx = 0;
+		gbc_lblPic.gridy = 0;
+		buildPopup.add(lblPic, gbc_lblPic);*/
+		/*
+		JLabel lbltitleDesc = new JLabel("Costs");
+		GridBagConstraints gbc_lbltitleDesc = new GridBagConstraints();
+		gbc_lbltitleDesc.insets = new Insets(0, 0, 5, 5);
+		gbc_lbltitleDesc.gridx = 2;
+		gbc_lbltitleDesc.gridy = 0;
+		buildPopup.add(lbltitleDesc, gbc_lbltitleDesc);
+		
+		JLabel gbc_lbltitleMeterEffect = new JLabel("Meter Effects");
+		GridBagConstraints gbc_lbltitleMeterEffect = new GridBagConstraints();
+		gbc_lbltitleMeterEffect.insets = new Insets(0, 0, 5, 0);
+		gbc_lbltitleMeterEffect.gridx = 3;
+		gbc_lbltitleMeterEffect.gridy = 0;
+		buildPopup.add(lbltitleMeterEffect, gbc_lbltitleMeterEffect);
+		*/
+		
 		JRadioButton rdbtnOilRefinery = new JRadioButton("Oil Refinery");
 		GridBagConstraints gbc_rdbtnOilRefinery = new GridBagConstraints();
 		gbc_rdbtnOilRefinery.anchor = GridBagConstraints.NORTHWEST;
@@ -694,21 +595,21 @@ public class GameScreen implements Runnable {
 		gbc_rdbtnOilRefinery.gridy = 0;
 		buildPopup.add(rdbtnOilRefinery, gbc_rdbtnOilRefinery);
 		buildBtns.add(rdbtnOilRefinery);
-
+		
 		JLabel lblOilDesc = new JLabel("Costs $100");
 		GridBagConstraints gbc_lblOilDesc = new GridBagConstraints();
 		gbc_lblOilDesc.insets = new Insets(0, 0, 5, 5);
 		gbc_lblOilDesc.gridx = 2;
 		gbc_lblOilDesc.gridy = 0;
 		buildPopup.add(lblOilDesc, gbc_lblOilDesc);
-
+		
 		JLabel lblOilMeterEffect = new JLabel("-2 env/sec, +$20/sec");
 		GridBagConstraints gbc_lblOilMeterEffect = new GridBagConstraints();
 		gbc_lblOilMeterEffect.insets = new Insets(0, 0, 5, 0);
 		gbc_lblOilMeterEffect.gridx = 3;
 		gbc_lblOilMeterEffect.gridy = 0;
 		buildPopup.add(lblOilMeterEffect, gbc_lblOilMeterEffect);
-
+		
 		JRadioButton rdbtnWindTurbine = new JRadioButton("Windfarm");
 		GridBagConstraints gbc_rdbtnWindTurbine = new GridBagConstraints();
 		gbc_rdbtnWindTurbine.anchor = GridBagConstraints.NORTHWEST;
@@ -724,14 +625,14 @@ public class GameScreen implements Runnable {
 		gbc_label.gridx = 2;
 		gbc_label.gridy = 1;
 		buildPopup.add(label, gbc_label);
-
+		
 		JLabel label_1 = new JLabel("+1 env/sec, +$1/sec,");
 		GridBagConstraints gbc_label_1 = new GridBagConstraints();
 		gbc_label_1.insets = new Insets(0, 0, 5, 0);
 		gbc_label_1.gridx = 3;
 		gbc_label_1.gridy = 1;
 		buildPopup.add(label_1, gbc_label_1);
-
+		
 		JRadioButton rdbtnSchool = new JRadioButton("School");
 		GridBagConstraints gbc_rdbtnSchool = new GridBagConstraints();
 		gbc_rdbtnSchool.anchor = GridBagConstraints.NORTHWEST;
@@ -747,14 +648,14 @@ public class GameScreen implements Runnable {
 		gbc_label_2.gridx = 2;
 		gbc_label_2.gridy = 2;
 		buildPopup.add(label_2, gbc_label_2);
-
+		
 		JLabel label_3 = new JLabel("+5 ppl/sec, +$3/sec");
 		GridBagConstraints gbc_label_3 = new GridBagConstraints();
 		gbc_label_3.insets = new Insets(0, 0, 5, 0);
 		gbc_label_3.gridx = 3;
 		gbc_label_3.gridy = 2;
 		buildPopup.add(label_3, gbc_label_3);
-
+		
 		JRadioButton rdbtnHouse = new JRadioButton("House");
 		GridBagConstraints gbc_rdbtnHouse = new GridBagConstraints();
 		gbc_rdbtnHouse.anchor = GridBagConstraints.NORTHWEST;
@@ -770,14 +671,14 @@ public class GameScreen implements Runnable {
 		gbc_label_4.gridx = 2;
 		gbc_label_4.gridy = 3;
 		buildPopup.add(label_4, gbc_label_4);
-
+		
 		JLabel label_5 = new JLabel("-1 env/sec, +2 ppl/sec");
 		GridBagConstraints gbc_label_5 = new GridBagConstraints();
 		gbc_label_5.insets = new Insets(0, 0, 5, 0);
 		gbc_label_5.gridx = 3;
 		gbc_label_5.gridy = 3;
 		buildPopup.add(label_5, gbc_label_5);
-
+		
 		JRadioButton rdbtnFarm = new JRadioButton("Farm");
 		GridBagConstraints gbc_rdbtnFarm = new GridBagConstraints();
 		gbc_rdbtnFarm.anchor = GridBagConstraints.NORTHWEST;
@@ -793,14 +694,14 @@ public class GameScreen implements Runnable {
 		gbc_label_6.gridx = 2;
 		gbc_label_6.gridy = 4;
 		buildPopup.add(label_6, gbc_label_6);
-
+		
 		JLabel label_7 = new JLabel("+4 env/sec, +$4/sec");
 		GridBagConstraints gbc_label_7 = new GridBagConstraints();
 		gbc_label_7.insets = new Insets(0, 0, 5, 0);
 		gbc_label_7.gridx = 3;
 		gbc_label_7.gridy = 4;
 		buildPopup.add(label_7, gbc_label_7);
-
+		
 		JRadioButton rdbtnBoat = new JRadioButton("Boat");
 		GridBagConstraints gbc_rdbtnBoat = new GridBagConstraints();
 		gbc_rdbtnBoat.anchor = GridBagConstraints.NORTHWEST;
@@ -816,14 +717,14 @@ public class GameScreen implements Runnable {
 		gbc_label_8.gridx = 2;
 		gbc_label_8.gridy = 5;
 		buildPopup.add(label_8, gbc_label_8);
-
+		
 		JLabel label_9 = new JLabel("+4 env/sec, +$4/sec");
 		GridBagConstraints gbc_label_9 = new GridBagConstraints();
 		gbc_label_9.insets = new Insets(0, 0, 5, 0);
 		gbc_label_9.gridx = 3;
 		gbc_label_9.gridy = 5;
 		buildPopup.add(label_9, gbc_label_9);
-
+		
 		final JRadioButton[] rdBtns = new JRadioButton[6];
 		rdBtns[0] = rdbtnOilRefinery;
 		rdBtns[1] = rdbtnWindTurbine;
@@ -831,13 +732,12 @@ public class GameScreen implements Runnable {
 		rdBtns[3] = rdbtnHouse;
 		rdBtns[4] = rdbtnFarm;
 		rdBtns[5] = rdbtnBoat;
-
+		
 		JButton btnClose = new JButton("Close");
 		btnClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				buildPopup.setVisible(false);
-				toggleButtons(true);
+				hammer.setEnabled(true);
 			}
 		});
 		GridBagConstraints gbc_btnClose = new GridBagConstraints();
@@ -845,130 +745,90 @@ public class GameScreen implements Runnable {
 		gbc_btnClose.gridx = 2;
 		gbc_btnClose.gridy = 6;
 		buildPopup.add(btnClose, gbc_btnClose);
-
+		
 		JButton btnBuildThatShit = new JButton("Build");
 		GridBagConstraints gbc_btnBuildThatShit = new GridBagConstraints();
 		gbc_btnBuildThatShit.gridx = 3;
 		gbc_btnBuildThatShit.gridy = 6;
-		buildPopup.add(btnBuildThatShit, gbc_btnBuildThatShit);
+		buildPopup.add(btnBuildThatShit, gbc_btnBuildThatShit);	
 		btnBuildThatShit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Sound.playSound("click.wav");
 				String selectedBuilding = "";
 				for (int i = 0; i < rdBtns.length; i++) {
 					if (rdBtns[i].isSelected()) {
 						selectedBuilding = rdBtns[i].getText();
 					}
 				}
-
+				
 				buildPopup.setVisible(false);
-				toggleButtons(true);
-
+				hammer.setEnabled(true);
+				
 				currentlySelectedBuilding = selectedBuilding;
-
-				if (currentlySelectedBuilding.equals("Boat")) {
-					if (getMoney() - Building.BOAT.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-				if (currentlySelectedBuilding.equals("Farm")) {
-					if (getMoney() - Building.FARM.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-				if (currentlySelectedBuilding.equals("House")) {
-					if (getMoney() - Building.HOUSE.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-				if (currentlySelectedBuilding.equals("Oil Refinery")) {
-					if (getMoney() - Building.OILREFINERY.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-				if (currentlySelectedBuilding.equals("School")) {
-					if (getMoney() - Building.SCHOOL.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-				if (currentlySelectedBuilding.equals("Windfarm")) {
-					if (getMoney() - Building.WINDFARM.cost >= 0)
-						timeToBuild = true;
-					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
-				}
-
+				
+				timeToBuild = true;
 			}
 		});
-
+		
 		buildPopup.setLocationRelativeTo(frame);
 		buildPopup.getRootPane().setBorder(BorderFactory.createBevelBorder(0));
 		buildPopup.setVisible(false);
 		buildPopup.setUndecorated(true);
+		
 
 	}
-
+	
 	public class Pauses implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			Sound.playSound("click.wav");
 			t.getTimer().pauseTimer();
 			t.getPausePopup().setVisible(true);
 			t.getPausePopup().requestFocus();
-			t.getPausePopup().setSize(300, 300);
+			t.getPausePopup().setSize(300,300);
 			t.getPausePopup().setLocationRelativeTo(frame);
 			t.getPausePopup().setLayout(new MigLayout("", "[max][max]", "[grow][grow]"));
 			JLabel paused = new JLabel("Game is paused.");
-			paused.setFont(new Font("Papyrus", Font.BOLD, 36));
+			paused.setFont(new Font("Papyrus",Font.BOLD,36));
 			gamePaused = true;
 			JButton closePause = new JButton("Resume");
 			JButton quitGame = new JButton("Quit");
 			closePause.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					Sound.playSound("click.wav");
 					t.getPausePopup().getContentPane().removeAll();
 					t.getPausePopup().getContentPane().repaint();
 					t.getPausePopup().getContentPane().revalidate();
 					t.getPausePopup().setVisible(false);
 					t.getTimer().startTimer();
-					toggleButtons(true);
 					gamePaused = false;
 				}
 			});
-			quitGame.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					// for now, go back to homescreen
-					Sound.playSound("click.wav");
+			quitGame.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					//for now, go back to homescreen
 					transitionToStartScreen();
 					t.getPausePopup().setVisible(false);
-
-					// in future:
-					// should just go to future screen and leaderboard
+					
+					//in future:
+					//should just go to future screen and leaderboard
 				}
 			});
 			t.getPausePopup().add(paused, "alignx center, aligny center, span 2, wrap");
 			t.getPausePopup().add(closePause, "alignx center, aligny center");
-			t.getPausePopup().add(quitGame, "alignx center, aligny center");
+			t.getPausePopup().add(quitGame,"alignx center, aligny center");
 			t.getPausePopup().getContentPane().repaint();
 			t.getPausePopup().getContentPane().revalidate();
 		}
-
+		
 	}
 
+	
 	public void transitionToStartScreen() {
-		gameActive = false;
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		frame.getContentPane().revalidate();
 		new TitleScreen(frame);
 	}
-
+	
 	public void highlightTileLogic(int upperLeftX, int upperLeftY) {
 		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
 		if (this.tileHighlighted == false) {
@@ -976,23 +836,22 @@ public class GameScreen implements Runnable {
 			gridPanelGraphicsContext.drawRect(upperLeftX, upperLeftY, 50, 50);
 			this.tileHighlighted = true;
 			return;
-		} else {// this.tileHighlighted == true
+		} else {//this.tileHighlighted == true
 			if (this.previousMouseXCorr == upperLeftX && this.previousMouseYCorr == upperLeftY) {
 				return;
-			} else {// the player clicked a different tile than the one
-					// currently highlighted
-				// unhighlight the currently highlighted tile
+			} else {//the player clicked a different tile than the one currently highlighted
+				//unhighlight the currently highlighted tile
 				gridPanelGraphicsContext.setColor(Color.GRAY);
 				gridPanelGraphicsContext.drawRect(this.previousMouseXCorr, this.previousMouseYCorr, 50, 50);
-
-				// highlight the newly clicked tile
+				
+				//highlight the newly clicked tile
 				gridPanelGraphicsContext.setColor(Color.YELLOW);
 				gridPanelGraphicsContext.drawRect(this.mouseXCorr, this.mouseYCorr, 50, 50);
 			}
 		}
 	}
-
-	// not needed anymore
+	
+	//not needed anymore
 	public void drawGridlines() {
 		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
 		gridPanelGraphicsContext.setColor(Color.GRAY);
@@ -1011,5 +870,8 @@ public class GameScreen implements Runnable {
 			xCount++;
 		}
 	}
-
+	
+	
+	
 }
+

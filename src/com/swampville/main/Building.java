@@ -20,12 +20,12 @@ public enum Building {
 	SCHOOL(5,3,0,150, "School"),
 	HOUSE(2,0,-1,10, "House"),
 	FARM(0,4,4,80, "Farm"),
-	BOAT(0,4,4,5, "Boat");
+	BOAT(1,1,-1,5, "Boat");
 	//etc
 	
-	int peopleEffect;
-	int moneyEffect;
-	int enviornmentEffect;
+	int meterEffect1;
+	int meterEffect2;
+	int meterEffect3;
 	
 	int cost;
 	
@@ -36,10 +36,10 @@ public enum Building {
 	 * @param meterEffect2
 	 * @param meterEffect3
 	 */
-	Building(int peopleEffect, int moneyEffect, int enviornmentEffect, int cost, String name) {
-		this.peopleEffect = peopleEffect;
-		this.moneyEffect = moneyEffect;
-		this.enviornmentEffect = enviornmentEffect;
+	Building(int meterEffect1, int meterEffect2, int meterEffect3, int cost, String name) {
+		this.meterEffect1 = meterEffect1;
+		this.meterEffect2 = meterEffect2;
+		this.meterEffect3 = meterEffect3;
 		this.cost = cost;
 		this.name = name;
 	}
