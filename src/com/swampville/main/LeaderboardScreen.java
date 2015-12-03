@@ -1,5 +1,4 @@
 package com.swampville.main;
-import java.util.Arrays;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -38,6 +37,7 @@ public class LeaderboardScreen implements ActionListener {
 		this.frame = frame;
 	//	this.askForInitials();
 		this.totalScoreOfPlayer = totalScoreOfPlayer;
+		updateScores();
 		this.displayScores();
 	}
 	
@@ -52,7 +52,7 @@ public class LeaderboardScreen implements ActionListener {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setBounds(100, 100, 1000, 700);
 		
-	    frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow][grow][]"));
+	    frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow][grow][grow][grow][]"));
 		
 	    //Scores
 	    JTextPane topThree = new JTextPane();
@@ -67,6 +67,7 @@ public class LeaderboardScreen implements ActionListener {
 		scoreOne.setEditable(false);;
 		scoreOne.setText(Integer.toString(x));
 		frame.getContentPane().add(scoreOne, "cell 0 1,alignx center,wrap");
+		scoreOne.setOpaque(false);
 
 		//Second Highest Score
 		JTextPane scoreTwo = new JTextPane();
@@ -74,6 +75,7 @@ public class LeaderboardScreen implements ActionListener {
 		scoreTwo.setEditable(false);;
 		scoreTwo.setText(Integer.toString(y));
 		frame.getContentPane().add(scoreTwo, "cell 0 2,alignx center,wrap");
+		scoreTwo.setOpaque(false);
 
 		//Second Highest Score
 		JTextPane scoreThree = new JTextPane();
@@ -81,6 +83,7 @@ public class LeaderboardScreen implements ActionListener {
 		scoreThree.setEditable(false);;
 		scoreThree.setText(Integer.toString(z));
 		frame.getContentPane().add(scoreThree, "cell 0 3,alignx center,wrap");
+		scoreThree.setOpaque(false);
 
 		
 		//adding back button
@@ -101,11 +104,11 @@ public class LeaderboardScreen implements ActionListener {
 				currentTopScores[2] = currentTopScores[1];
 				currentTopScores[1] = currentTopScores[0];
 				currentTopScores[0] = totalScoreOfPlayer;
-			}
+			}else
 			if(totalScoreOfPlayer > currentTopScores[1]){
 				currentTopScores[2] = currentTopScores[1];
 				currentTopScores[1] = totalScoreOfPlayer;
-			}
+			}else
 			if(totalScoreOfPlayer > currentTopScores[2]){
 				currentTopScores[2] = totalScoreOfPlayer;
 			}

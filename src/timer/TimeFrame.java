@@ -1,9 +1,14 @@
 package timer;
 
+import java.awt.BorderLayout;
 import java.awt.Font;
+
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import com.swampville.main.Meter;
 
 public class TimeFrame extends JPanel{
 	
@@ -22,6 +27,14 @@ public class TimeFrame extends JPanel{
 	public TimeFrame(){
 		timer = new Timer(this);
 		add(time);
+		
+		/*JLabel timeIcon = new JLabel();
+		ImageIcon timeImg = new ImageIcon("src/swampimages/time.png");
+		timeIcon.setIcon(timeImg);
+		Meter timeMeter = new Meter(35,50, 100, 20);
+		add(timeIcon);
+		add(timeMeter, BorderLayout.WEST);*/
+		
 		timer.startTimer();
 	}
 	public void update(long dT){
@@ -31,6 +44,8 @@ public class TimeFrame extends JPanel{
 		
 		time.setText(String.valueOf((dT/60000)%1000) + ":" + String.valueOf((dT/1000)%60));
 		time.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
+		
+		
 		
 		
 	}
