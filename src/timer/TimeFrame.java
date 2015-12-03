@@ -1,14 +1,11 @@
 package timer;
 
-import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
-import com.swampville.main.Meter;
 
 public class TimeFrame extends JPanel{
 	
@@ -27,6 +24,8 @@ public class TimeFrame extends JPanel{
 	public TimeFrame(){
 		timer = new Timer(this);
 		add(time);
+		
+		this.setOpaque(false);
 		
 		/*JLabel timeIcon = new JLabel();
 		ImageIcon timeImg = new ImageIcon("src/swampimages/time.png");

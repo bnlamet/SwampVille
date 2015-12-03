@@ -1,5 +1,7 @@
 package com.swampville.main;
 
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -9,8 +11,10 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTextPane;
 
 import net.miginfocom.swing.MigLayout;
@@ -28,6 +32,10 @@ public class LeaderboardScreen implements ActionListener {
 	int totalScoreOfPlayer;
 
 	JButton goToStartScreen;
+	
+	JLabel background;
+	
+	Container contentPane;
 
 	/**
 	 * @param frame
@@ -35,8 +43,10 @@ public class LeaderboardScreen implements ActionListener {
 	 */
 	public LeaderboardScreen(JFrame frame, int totalScoreOfPlayer) {
 		this.frame = frame;
+		contentPane = frame.getContentPane();
 		// this.askForInitials();
 		this.totalScoreOfPlayer = totalScoreOfPlayer;
+		setBackground();
 		readCurrentTopScoresFromAppMemory();
 		saveCurrentScores();
 		this.displayScores();
@@ -62,14 +72,16 @@ public class LeaderboardScreen implements ActionListener {
 
 		// Scores
 		JTextPane topThree = new JTextPane();
-		topThree.setFont(new Font("Tahoma", Font.PLAIN, 31));
+		topThree.setFont(new Font("Tahoma", Font.PLAIN, 60));
 		topThree.setEditable(false);
-		topThree.setText("Top Three Scores");
+		topThree.setOpaque(false);
+		topThree.setText("");
 		frame.getContentPane().add(topThree, "cell 0 0,alignx center, wrap");
 
 		// Highest Score
 		JTextPane scoreOne = new JTextPane();
-		scoreOne.setFont(new Font("Tahoma", Font.PLAIN, 31));
+		scoreOne.setFont(new Font("Papyrus", Font.PLAIN, 45));
+		scoreOne.setForeground(Color.WHITE);
 		scoreOne.setEditable(false);
 		scoreOne.setText(formatter.format(x).toString());
 		frame.getContentPane().add(scoreOne, "cell 0 1,alignx center,wrap");
@@ -77,7 +89,8 @@ public class LeaderboardScreen implements ActionListener {
 
 		// Second Highest Score
 		JTextPane scoreTwo = new JTextPane();
-		scoreTwo.setFont(new Font("Tahoma", Font.PLAIN, 31));
+		scoreTwo.setFont(new Font("Papyrus", Font.PLAIN, 45));
+		scoreTwo.setForeground(Color.WHITE);
 		scoreTwo.setEditable(false);
 		scoreTwo.setText(formatter.format(y).toString());
 		frame.getContentPane().add(scoreTwo, "cell 0 2,alignx center,wrap");
@@ -85,7 +98,8 @@ public class LeaderboardScreen implements ActionListener {
 
 		// Second Highest Score
 		JTextPane scoreThree = new JTextPane();
-		scoreThree.setFont(new Font("Tahoma", Font.PLAIN, 31));
+		scoreThree.setFont(new Font("Papyrus", Font.PLAIN, 45));
+		scoreThree.setForeground(Color.WHITE);
 		scoreThree.setEditable(false);
 		scoreThree.setText(formatter.format(z).toString());
 		frame.getContentPane().add(scoreThree, "cell 0 3,alignx center,wrap");
@@ -187,6 +201,7 @@ public class LeaderboardScreen implements ActionListener {
 	 * pass frame to title screen
 	 */
 	public void transitionToTitleScreen() {
+		frame.setContentPane(contentPane);
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		new TitleScreen(frame);
@@ -201,6 +216,13 @@ public class LeaderboardScreen implements ActionListener {
 		if (btnClicked.getText() == "Go to Start Screen") {
 			this.transitionToTitleScreen();
 		}
+	}
+	
+	private void setBackground(){
+		background = new JLabel();
+		ImageIcon bg = new ImageIcon("src/swampimages/leaderbg.png");
+		background.setIcon(bg);
+		frame.setContentPane(background);
 	}
 
 }

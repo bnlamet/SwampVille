@@ -3,6 +3,7 @@ package com.swampville.main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -47,16 +48,19 @@ public class GameScreen implements Runnable {
 	boolean tileHighlighted = false;
 
 	boolean gameActive = false;
-	
+
 	String future;
 
 	int buildAnimationLength = 150;
 	int buildAnimationCounter = 0;
-	
+
 	int infoAnimationLength = 42;
 	int infoAnimationCounter = 0;
-	
+
 	int timeLimit = 10;
+	
+	Container contentPane;
+	JLabel background;
 
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
@@ -96,9 +100,7 @@ public class GameScreen implements Runnable {
 	 * @param difficulty
 	 * @throws IOException
 	 */
-	public GameScreen(JFrame frame, String difficulty) throws IOException {
-
-		this.difficulty = difficulty;
+	public GameScreen(JFrame frame) throws IOException {
 		this.frame = frame;
 		this.initializeGameScreen();
 		gameActive = true;
@@ -149,13 +151,16 @@ public class GameScreen implements Runnable {
 		// we are not dealing with the title screen's MigLayout anymore, which
 		// stops everything from shifting. I think. Regardless, it works as of
 		// now.
-
+		
+		contentPane = frame.getContentPane();
+		setBackground();
+		
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0, 0)), tk.getScreenSize());
-		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 480);
+		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 500);
 		frame.getContentPane().setLayout(gameLayout);
 
 		this.initializeGrid();
@@ -167,28 +172,29 @@ public class GameScreen implements Runnable {
 
 		//////////////// ADDING STOP TO GAME FRAME/////////////////////////
 
-		stop = new JButton("Pause");
-
-		try {
-			BufferedImage stopImg = ImageIO.read(new File("src/swampimages/stop.png"));
-			stop.setIcon(new ImageIcon(stopImg));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		stop = new JButton();
+		stop.setContentAreaFilled(false);
+//		try {
+//			BufferedImage stopImg = ImageIO.read(new File("src/swampimages/stop.png"));
+//			stop.setIcon(new ImageIcon(stopImg));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 		stop.addActionListener(new Pauses());
 		frame.getContentPane().add(stop, "cell 1 3,grow");
 
 		//////////////// ADDING HAMMER TO GAME FRAME/////////////////////////
 
-		hammer = new JButton("Build");
+		hammer = new JButton();
+		hammer.setContentAreaFilled(false);
 
-		try {
-			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
-			hammer.setIcon(new ImageIcon(hammerImg));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
+//			hammer.setIcon(new ImageIcon(hammerImg));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 		hammer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -210,6 +216,15 @@ public class GameScreen implements Runnable {
 		buildPopup = new JFrame();
 		createBuildPanel();
 	}
+	
+	private void setBackground(){
+		background = new JLabel();
+		ImageIcon bg = new ImageIcon("src/swampimages/gamebg.png");
+		background.setIcon(bg);
+		frame.setContentPane(background);
+		frame.revalidate();
+		frame.repaint();
+	}
 
 	public void initializeMeters() {
 
@@ -227,6 +242,7 @@ public class GameScreen implements Runnable {
 		envImg.setIcon(environmentImg);
 		envMeter = new Meter(35, 50, 100, 20);
 		envMeter.add(envImg, BorderLayout.WEST);
+		envMeter.setOpaque(false);
 
 		// Create People meter
 		/*
@@ -240,13 +256,15 @@ public class GameScreen implements Runnable {
 		pplImg.setIcon(pplIcon);
 		pplMeter = new Meter(35, 49, 100, 20);
 		pplMeter.add(pplImg, BorderLayout.WEST);
+		pplMeter.setOpaque(false);
 
 		// Create Money Meter
 		JPanel money = new JPanel();
 		moneyLbl = new JLabel("100");
-		ImageIcon moneyImg = new ImageIcon("src/swampimages/money.png");
+		ImageIcon moneyImg = new ImageIcon("src/swampimages/coin.png");
 		moneyLbl.setIcon(moneyImg);
-		money.add(moneyLbl);
+		money.add(moneyLbl, BorderLayout.SOUTH);
+		money.setOpaque(false);
 
 		/*
 		 * JPanel maxPop = new JPanel(); maxPopLbl = new JLabel("10"); ImageIcon
@@ -313,8 +331,8 @@ public class GameScreen implements Runnable {
 				System.out.println(mouseXCorr + ", " + mouseYCorr);
 			}
 		});
-	}
-	
+	} 
+
 	private int calculateScore() {
 
 		future = "";
@@ -394,7 +412,7 @@ public class GameScreen implements Runnable {
 		try {
 			makinMagic();
 			updateBuildings();
-			
+
 			if (buildAnimationCounter >= buildAnimationLength) {
 				buildAnimationCounter = 0;
 				if (animationCount < 4) {
@@ -429,7 +447,6 @@ public class GameScreen implements Runnable {
 			if (t.getSeconds() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
 			}
-
 		}
 	}
 
@@ -652,6 +669,7 @@ public class GameScreen implements Runnable {
 	}
 
 	private void transitionToFutureScreen(int score, String future) {
+		frame.setContentPane(contentPane);
 		toggleButtons(false);
 		gameActive = false;
 		if (buildPopup.isVisible())
@@ -661,7 +679,6 @@ public class GameScreen implements Runnable {
 		frame.getContentPane().revalidate();
 		new FutureScreen(frame, score, future);
 	}
-
 
 	public void triggerEvent() {
 		// put up eventPopup
@@ -961,6 +978,7 @@ public class GameScreen implements Runnable {
 
 	public void transitionToStartScreen() {
 		gameActive = false;
+		frame.setContentPane(contentPane);
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		frame.getContentPane().revalidate();
