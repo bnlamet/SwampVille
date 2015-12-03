@@ -161,8 +161,6 @@ public class GameScreen implements Runnable {
 		this.initializeGrid();
 		this.initializeMeters();
 
-		this.drawGridlines();
-
 		for (Component comp : this.frame.getContentPane().getComponents()) {
 			System.out.println(comp);
 		}
@@ -991,25 +989,4 @@ public class GameScreen implements Runnable {
 			}
 		}
 	}
-
-	// not needed anymore
-	public void drawGridlines() {
-		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
-		gridPanelGraphicsContext.setColor(Color.GRAY);
-		int xCoor = 0;
-		int xCount = 0;
-		while (xCount < 13) {
-			int yCount = 0;
-			int yCoor = 0;
-			while (yCount < 8) {
-				xCoor = xCount * 50;
-				yCoor = yCount * 50;
-				gridPanelGraphicsContext.drawRect(xCoor, yCoor, 50, 50);
-				yCount++;
-				System.out.println("Drawing gridlines");
-			}
-			xCount++;
-		}
-	}
-
 }
