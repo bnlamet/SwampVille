@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -24,8 +25,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
+import javax.print.DocFlavor.URL;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -33,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.SwingConstants;
 
 import net.miginfocom.swing.MigLayout;
 import timer.TimeFrame;
@@ -47,16 +51,16 @@ public class GameScreen implements Runnable {
 	boolean tileHighlighted = false;
 
 	boolean gameActive = false;
-
+	
 	String future;
 
 	int buildAnimationLength = 150;
 	int buildAnimationCounter = 0;
-
+	
 	int infoAnimationLength = 42;
 	int infoAnimationCounter = 0;
-
-	int timeLimit = 2;
+	
+	int timeLimit = 40000;
 
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
@@ -155,11 +159,15 @@ public class GameScreen implements Runnable {
 		frame.setVisible(true);
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0, 0)), tk.getScreenSize());
-		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 480);
+		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 472);
 		frame.getContentPane().setLayout(gameLayout);
+		
+		frame.getContentPane().setBackground(new Color(68, 102, 0));
 
 		this.initializeGrid();
 		this.initializeMeters();
+
+		this.drawGridlines();
 
 		for (Component comp : this.frame.getContentPane().getComponents()) {
 			System.out.println(comp);
@@ -167,22 +175,22 @@ public class GameScreen implements Runnable {
 
 		//////////////// ADDING STOP TO GAME FRAME/////////////////////////
 
-		stop = new JButton();
-
+		stop = new JButton("");
 		try {
 			BufferedImage stopImg = ImageIO.read(new File("src/swampimages/stop.png"));
 			stop.setIcon(new ImageIcon(stopImg));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		stop.setBackground(new Color(102, 153, 0));
+		stop.setOpaque(true);
+		stop.setBorderPainted(false);
 		stop.addActionListener(new Pauses());
-		stop.setBackground(new Color(80,98,0));
 		frame.getContentPane().add(stop, "cell 1 3,grow");
 
 		//////////////// ADDING HAMMER TO GAME FRAME/////////////////////////
 
-		hammer = new JButton();
+		hammer = new JButton("");
 
 		try {
 			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
@@ -191,6 +199,10 @@ public class GameScreen implements Runnable {
 			e.printStackTrace();
 		}
 
+		hammer.setBackground(new Color(102, 153, 0));
+		hammer.setOpaque(true);
+		hammer.setBorderPainted(false);
+		
 		hammer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -198,7 +210,6 @@ public class GameScreen implements Runnable {
 				toggleButtons(false);
 			}
 		});
-		hammer.setBackground(new Color(80,98,0));
 		frame.getContentPane().add(hammer, "cell 1 4,grow");
 
 		//////////////// ADDING TIME TO GAME FRAME/////////////////////////
@@ -225,7 +236,7 @@ public class GameScreen implements Runnable {
 		 */
 
 		JLabel envImg = new JLabel();
-		ImageIcon environmentImg = new ImageIcon("src/swampimages/environment.png");
+		ImageIcon environmentImg = new ImageIcon("src/swampimages/Blue_Recycle_Symbol.png");
 		envImg.setIcon(environmentImg);
 		envMeter = new Meter(35, 50, 100, 20);
 		envMeter.add(envImg, BorderLayout.WEST);
@@ -245,8 +256,13 @@ public class GameScreen implements Runnable {
 
 		// Create Money Meter
 		JPanel money = new JPanel();
+		money.setBackground(new Color(102, 153, 0));
+		money.setOpaque(true);
+		
 		moneyLbl = new JLabel("100");
-		ImageIcon moneyImg = new ImageIcon("src/swampimages/money.png");
+		moneyLbl.setFont(new Font("Papyrus", Font.BOLD, 24));
+		moneyLbl.setForeground(Color.WHITE);
+		ImageIcon moneyImg = new ImageIcon("src/swampimages/Coin.png");
 		moneyLbl.setIcon(moneyImg);
 		money.add(moneyLbl);
 
@@ -303,8 +319,18 @@ public class GameScreen implements Runnable {
 				mouseYCorr = gridCorr(e.getX(), e.getY())[1];
 
 				if (buildingCodes[mouseXCorr / 50][mouseYCorr / 50] == 2) {
-					JOptionPane.showMessageDialog(frame, "You can't build here. Select a new tile.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+					
+					try {
+						BufferedImage hammerSlashedImg = ImageIO.read(new File("src/swampimages/Hammer_Slashed.png"));
+	                    JOptionPane.showMessageDialog(
+	                            frame,
+	                            "You can't build here. Select a new tile.",
+	                            "", JOptionPane.INFORMATION_MESSAGE,
+	                            new ImageIcon(hammerSlashedImg));
+	                	
+					} catch (IOException i) {
+						i.printStackTrace();
+					}
 					mouseXCorr = previousMouseXCorr;
 					mouseYCorr = previousMouseYCorr;
 					return;
@@ -316,7 +342,7 @@ public class GameScreen implements Runnable {
 			}
 		});
 	}
-
+	
 	private int calculateScore() {
 
 		future = "";
@@ -333,7 +359,7 @@ public class GameScreen implements Runnable {
 		if (envMeter.getValue() < 50) {
 			finalScore -= 2000;
 
-			future += "Your environment would be worse off than when you started.\nRemember, you can sustain a population while maintaining a healthy estuary!\nBalance is key!!\n\n";
+			future += "Your enviornment would be worse off than when you started.\nRemember, you can sustain a population while maintaining a healthy estuary!\nBalance is key!!\n\n";
 
 		}
 		if (pplMeter.getValue() < 10) {
@@ -396,7 +422,7 @@ public class GameScreen implements Runnable {
 		try {
 			makinMagic();
 			updateBuildings();
-
+			
 			if (buildAnimationCounter >= buildAnimationLength) {
 				buildAnimationCounter = 0;
 				if (animationCount < 4) {
@@ -428,7 +454,7 @@ public class GameScreen implements Runnable {
 				updateMeters();
 			}
 
-			if (t.getMinutes() == timeLimit) {
+			if (t.getSeconds() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
 			}
 
@@ -525,10 +551,17 @@ public class GameScreen implements Runnable {
 			if (buildCode == 1) { // water
 				if (this.currentlySelectedBuilding.equals("Boat")) { // if boat
 					if (boatCount >= 5) {
-						JOptionPane.showMessageDialog(frame,
-								"WARNING! Building this boat will cause over-fishing."
-										+ " \n Over-fishing negatively impacts the environment (-10 env/sec).",
-								"DANGER! DANGER!", JOptionPane.ERROR_MESSAGE);
+						try {
+							BufferedImage sadFishImg = ImageIO.read(new File("src/swampimages/Sad_Fish.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "WARNING! Building this boat will cause over-fishing." 
+		                            + " \n Over-fishing negatively impacts the environment (-10 env/sec).",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(sadFishImg));
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 						boatCount += 1;
 						this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
 								mouseXCorr, mouseYCorr, this.gridPanel);
@@ -554,15 +587,33 @@ public class GameScreen implements Runnable {
 						this.timeToBuild = false;
 					}
 				} else { // if not a boat
-					JOptionPane.showMessageDialog(frame, "You can't build a building on water. Try again.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+					try {
+						BufferedImage hammerSlashedImg = ImageIO.read(new File("src/swampimages/Hammer_Slashed.png"));
+	                    JOptionPane.showMessageDialog(
+	                            frame,
+	                            "You can't build a building on water. Select a new tile.",
+	                            "", JOptionPane.INFORMATION_MESSAGE,
+	                            new ImageIcon(hammerSlashedImg));
+	                	
+					} catch (IOException i) {
+						i.printStackTrace();
+					}
 					this.timeToBuild = false;
 				}
 			}
 			if (buildCode == 0) { // land
 				if (this.currentlySelectedBuilding.equals("Boat")) {
-					JOptionPane.showMessageDialog(frame, "You can't build a boat on land. Try again.", "ERROR",
-							JOptionPane.WARNING_MESSAGE);
+					try {
+						BufferedImage boatSlashedImg = ImageIO.read(new File("src/swampimages/Boat_Slashed.png"));
+	                    JOptionPane.showMessageDialog(
+	                            frame,
+	                            "You can't build a boat on land. Try again.",
+	                            "", JOptionPane.INFORMATION_MESSAGE,
+	                            new ImageIcon(boatSlashedImg));
+	                	
+					} catch (IOException i) {
+						i.printStackTrace();
+					}
 					this.timeToBuild = false;
 				} else {
 
@@ -611,38 +662,38 @@ public class GameScreen implements Runnable {
 		int newMoneyDelta = 0;
 
 		if (buildingStr.equals("Boat")) {
-			newEnvironmentDelta = Building.BOAT.environmentEffect;
+			newEnvironmentDelta = Building.BOAT.enviornmentEffect;
 			newPeopleDelta = Building.BOAT.peopleEffect;
 			newMoneyDelta = Building.BOAT.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.BOAT.cost));
 		}
 		if (buildingStr.equals("Farm")) {
-			newEnvironmentDelta = Building.FARM.environmentEffect;
+			newEnvironmentDelta = Building.FARM.enviornmentEffect;
 			newPeopleDelta = Building.FARM.peopleEffect;
 			newMoneyDelta = Building.FARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.FARM.cost));
 		}
 		if (buildingStr.equals("House")) {
-			newEnvironmentDelta = Building.HOUSE.environmentEffect;
+			newEnvironmentDelta = Building.HOUSE.enviornmentEffect;
 			newPeopleDelta = Building.HOUSE.peopleEffect;
 			newMoneyDelta = Building.HOUSE.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.HOUSE.cost));
 		}
 		if (buildingStr.equals("Oil Refinery")) {
-			newEnvironmentDelta = Building.OILREFINERY.environmentEffect;
+			newEnvironmentDelta = Building.OILREFINERY.enviornmentEffect;
 			newPeopleDelta = Building.OILREFINERY.peopleEffect;
 			newMoneyDelta = Building.OILREFINERY.moneyEffect;
 			this.moneyLbl
 					.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.OILREFINERY.cost));
 		}
 		if (buildingStr.equals("School")) {
-			newEnvironmentDelta = Building.SCHOOL.environmentEffect;
+			newEnvironmentDelta = Building.SCHOOL.enviornmentEffect;
 			newPeopleDelta = Building.SCHOOL.peopleEffect;
 			newMoneyDelta = Building.SCHOOL.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.SCHOOL.cost));
 		}
 		if (buildingStr.equals("Windfarm")) {
-			newEnvironmentDelta = Building.WINDFARM.environmentEffect;
+			newEnvironmentDelta = Building.WINDFARM.enviornmentEffect;
 			newPeopleDelta = Building.WINDFARM.peopleEffect;
 			newMoneyDelta = Building.WINDFARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.WINDFARM.cost));
@@ -664,6 +715,7 @@ public class GameScreen implements Runnable {
 		new FutureScreen(frame, score, future);
 	}
 
+
 	public void triggerEvent() {
 		// put up eventPopup
 		// update meters based on what the event is
@@ -677,15 +729,18 @@ public class GameScreen implements Runnable {
 		// buildPopup.setBorder(new BevelBorder(BevelBorder.RAISED, null, null,
 		// null, null));
 		Rectangle frameRect = this.frame.getContentPane().getBounds();
-		buildPopup.setBounds(frameRect.x / 4, frameRect.y / 4, frameRect.width / 2, frameRect.height / 2);
+		buildPopup.setBounds(frameRect.x / 4, frameRect.y / 4, frameRect.width / 2, frameRect.height / 2 + 150);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 16, 129, 63, 0, 0 };
+		gridBagLayout.columnWidths = new int[] {0, 0, 0, 0, 0 };
 		gridBagLayout.rowHeights = new int[] { 25, 25, 25, 25, 25, 25, 25, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		buildPopup.setLayout(gridBagLayout);
 
-		JRadioButton rdbtnOilRefinery = new JRadioButton("Oil Refinery");
+        java.net.URL url = GameScreen.class.getResource("/swampimages/Oil Refinery.png");
+        String html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Oil Refinery</p>";
+		JRadioButton rdbtnOilRefinery = new JRadioButton(html);
+		rdbtnOilRefinery.setName("Oil Refinery");
 		GridBagConstraints gbc_rdbtnOilRefinery = new GridBagConstraints();
 		gbc_rdbtnOilRefinery.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnOilRefinery.insets = new Insets(0, 0, 5, 5);
@@ -694,21 +749,24 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnOilRefinery, gbc_rdbtnOilRefinery);
 		buildBtns.add(rdbtnOilRefinery);
 
-		JLabel lblOilDesc = new JLabel("Costs $" + Building.OILREFINERY.getCost());
+		JLabel lblOilDesc = new JLabel("Costs $100");
 		GridBagConstraints gbc_lblOilDesc = new GridBagConstraints();
 		gbc_lblOilDesc.insets = new Insets(0, 0, 5, 5);
 		gbc_lblOilDesc.gridx = 2;
 		gbc_lblOilDesc.gridy = 0;
 		buildPopup.add(lblOilDesc, gbc_lblOilDesc);
 
-		JLabel lblOilMeterEffect = new JLabel(Building.OILREFINERY.getEffects());
+		JLabel lblOilMeterEffect = new JLabel("-2 env/sec, +$20/sec");
 		GridBagConstraints gbc_lblOilMeterEffect = new GridBagConstraints();
 		gbc_lblOilMeterEffect.insets = new Insets(0, 0, 5, 0);
 		gbc_lblOilMeterEffect.gridx = 3;
 		gbc_lblOilMeterEffect.gridy = 0;
 		buildPopup.add(lblOilMeterEffect, gbc_lblOilMeterEffect);
 
-		JRadioButton rdbtnWindTurbine = new JRadioButton("Windfarm");
+        url = GameScreen.class.getResource("/swampimages/Windfarm.png");
+        html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Windfarm</p>";
+		JRadioButton rdbtnWindTurbine = new JRadioButton(html);
+		rdbtnWindTurbine.setName("Windfarm");
 		GridBagConstraints gbc_rdbtnWindTurbine = new GridBagConstraints();
 		gbc_rdbtnWindTurbine.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnWindTurbine.insets = new Insets(0, 0, 5, 5);
@@ -717,21 +775,24 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnWindTurbine, gbc_rdbtnWindTurbine);
 		buildBtns.add(rdbtnWindTurbine);
 
-		JLabel label = new JLabel("Costs $" + Building.WINDFARM.getCost());
+		JLabel label = new JLabel("Costs $20");
 		GridBagConstraints gbc_label = new GridBagConstraints();
 		gbc_label.insets = new Insets(0, 0, 5, 5);
 		gbc_label.gridx = 2;
 		gbc_label.gridy = 1;
 		buildPopup.add(label, gbc_label);
 
-		JLabel label_1 = new JLabel(Building.WINDFARM.getEffects());
+		JLabel label_1 = new JLabel("+1 env/sec, +$1/sec,");
 		GridBagConstraints gbc_label_1 = new GridBagConstraints();
 		gbc_label_1.insets = new Insets(0, 0, 5, 0);
 		gbc_label_1.gridx = 3;
 		gbc_label_1.gridy = 1;
 		buildPopup.add(label_1, gbc_label_1);
-
-		JRadioButton rdbtnSchool = new JRadioButton("School");
+		
+        url = GameScreen.class.getResource("/swampimages/School.png");
+        html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>School</p>";
+		JRadioButton rdbtnSchool = new JRadioButton(html);
+		rdbtnSchool.setName("School");
 		GridBagConstraints gbc_rdbtnSchool = new GridBagConstraints();
 		gbc_rdbtnSchool.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnSchool.insets = new Insets(0, 0, 5, 5);
@@ -740,21 +801,24 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnSchool, gbc_rdbtnSchool);
 		buildBtns.add(rdbtnSchool);
 
-		JLabel label_2 = new JLabel("Costs $" + Building.SCHOOL.getCost());
+		JLabel label_2 = new JLabel("Costs $150");
 		GridBagConstraints gbc_label_2 = new GridBagConstraints();
 		gbc_label_2.insets = new Insets(0, 0, 5, 5);
 		gbc_label_2.gridx = 2;
 		gbc_label_2.gridy = 2;
 		buildPopup.add(label_2, gbc_label_2);
 
-		JLabel label_3 = new JLabel(Building.SCHOOL.getEffects());
+		JLabel label_3 = new JLabel("+5 ppl/sec, +$3/sec");
 		GridBagConstraints gbc_label_3 = new GridBagConstraints();
 		gbc_label_3.insets = new Insets(0, 0, 5, 0);
 		gbc_label_3.gridx = 3;
 		gbc_label_3.gridy = 2;
 		buildPopup.add(label_3, gbc_label_3);
-
-		JRadioButton rdbtnHouse = new JRadioButton("House");
+		
+        url = GameScreen.class.getResource("/swampimages/House.png");
+        html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>House</p>";
+		JRadioButton rdbtnHouse = new JRadioButton(html);
+		rdbtnHouse.setName("House");
 		GridBagConstraints gbc_rdbtnHouse = new GridBagConstraints();
 		gbc_rdbtnHouse.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnHouse.insets = new Insets(0, 0, 5, 5);
@@ -763,21 +827,24 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnHouse, gbc_rdbtnHouse);
 		buildBtns.add(rdbtnHouse);
 
-		JLabel label_4 = new JLabel("Costs $" + Building.HOUSE.getCost());
+		JLabel label_4 = new JLabel("Costs $10");
 		GridBagConstraints gbc_label_4 = new GridBagConstraints();
 		gbc_label_4.insets = new Insets(0, 0, 5, 5);
 		gbc_label_4.gridx = 2;
 		gbc_label_4.gridy = 3;
 		buildPopup.add(label_4, gbc_label_4);
 
-		JLabel label_5 = new JLabel(Building.HOUSE.getEffects());
+		JLabel label_5 = new JLabel("-1 env/sec, +2 ppl/sec");
 		GridBagConstraints gbc_label_5 = new GridBagConstraints();
 		gbc_label_5.insets = new Insets(0, 0, 5, 0);
 		gbc_label_5.gridx = 3;
 		gbc_label_5.gridy = 3;
 		buildPopup.add(label_5, gbc_label_5);
 
-		JRadioButton rdbtnFarm = new JRadioButton("Farm");
+        url = GameScreen.class.getResource("/swampimages/Farm.png");
+        html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Farm</p>";
+		JRadioButton rdbtnFarm = new JRadioButton(html);
+		rdbtnFarm.setName("Farm");
 		GridBagConstraints gbc_rdbtnFarm = new GridBagConstraints();
 		gbc_rdbtnFarm.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnFarm.insets = new Insets(0, 0, 5, 5);
@@ -786,21 +853,24 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnFarm, gbc_rdbtnFarm);
 		buildBtns.add(rdbtnFarm);
 
-		JLabel label_6 = new JLabel("Costs $" + Building.FARM.getCost());
+		JLabel label_6 = new JLabel("Costs $80");
 		GridBagConstraints gbc_label_6 = new GridBagConstraints();
 		gbc_label_6.insets = new Insets(0, 0, 5, 5);
 		gbc_label_6.gridx = 2;
 		gbc_label_6.gridy = 4;
 		buildPopup.add(label_6, gbc_label_6);
 
-		JLabel label_7 = new JLabel(Building.FARM.getEffects());
+		JLabel label_7 = new JLabel("+4 env/sec, +$4/sec");
 		GridBagConstraints gbc_label_7 = new GridBagConstraints();
 		gbc_label_7.insets = new Insets(0, 0, 5, 0);
 		gbc_label_7.gridx = 3;
 		gbc_label_7.gridy = 4;
 		buildPopup.add(label_7, gbc_label_7);
 
-		JRadioButton rdbtnBoat = new JRadioButton("Boat");
+        url = GameScreen.class.getResource("/swampimages/Boat.png");
+        html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Boat</p>";
+		JRadioButton rdbtnBoat = new JRadioButton(html);
+		rdbtnBoat.setName("Boat");
 		GridBagConstraints gbc_rdbtnBoat = new GridBagConstraints();
 		gbc_rdbtnBoat.anchor = GridBagConstraints.NORTHWEST;
 		gbc_rdbtnBoat.insets = new Insets(0, 0, 5, 5);
@@ -809,20 +879,20 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnBoat, gbc_rdbtnBoat);
 		buildBtns.add(rdbtnBoat);
 
-		JLabel label_8 = new JLabel("$" + Building.BOAT.getCost());
+		JLabel label_8 = new JLabel("Costs $5");
 		GridBagConstraints gbc_label_8 = new GridBagConstraints();
 		gbc_label_8.insets = new Insets(0, 0, 5, 5);
 		gbc_label_8.gridx = 2;
 		gbc_label_8.gridy = 5;
 		buildPopup.add(label_8, gbc_label_8);
 
-		JLabel label_9 = new JLabel(Building.BOAT.getEffects());
+		JLabel label_9 = new JLabel("+4 env/sec, +$4/sec");
 		GridBagConstraints gbc_label_9 = new GridBagConstraints();
 		gbc_label_9.insets = new Insets(0, 0, 5, 0);
 		gbc_label_9.gridx = 3;
 		gbc_label_9.gridy = 5;
 		buildPopup.add(label_9, gbc_label_9);
-
+		
 		final JRadioButton[] rdBtns = new JRadioButton[6];
 		rdBtns[0] = rdbtnOilRefinery;
 		rdBtns[1] = rdbtnWindTurbine;
@@ -830,8 +900,15 @@ public class GameScreen implements Runnable {
 		rdBtns[3] = rdbtnHouse;
 		rdBtns[4] = rdbtnFarm;
 		rdBtns[5] = rdbtnBoat;
-
-		JButton btnClose = new JButton("Close");
+		
+		JButton btnClose = new JButton("");
+		try {
+			BufferedImage closeImg = ImageIO.read(new File("src/swampimages/Red_X.png"));
+			btnClose.setIcon(new ImageIcon(closeImg));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		btnClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -844,8 +921,15 @@ public class GameScreen implements Runnable {
 		gbc_btnClose.gridx = 2;
 		gbc_btnClose.gridy = 6;
 		buildPopup.add(btnClose, gbc_btnClose);
-
-		JButton btnBuildThatShit = new JButton("Build");
+		
+		JButton btnBuildThatShit = new JButton("");
+		try {
+			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
+			btnBuildThatShit.setIcon(new ImageIcon(hammerImg));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		GridBagConstraints gbc_btnBuildThatShit = new GridBagConstraints();
 		gbc_btnBuildThatShit.gridx = 3;
 		gbc_btnBuildThatShit.gridy = 6;
@@ -853,12 +937,15 @@ public class GameScreen implements Runnable {
 		btnBuildThatShit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
+				//String[] selectedBuildingSplit;
 				String selectedBuilding = "";
 				for (int i = 0; i < rdBtns.length; i++) {
 					if (rdBtns[i].isSelected()) {
-						selectedBuilding = rdBtns[i].getText();
+						selectedBuilding = rdBtns[i].getName();
 					}
 				}
+				
+				System.out.println(selectedBuilding);
 
 				buildPopup.setVisible(false);
 				toggleButtons(true);
@@ -869,37 +956,98 @@ public class GameScreen implements Runnable {
 					if (getMoney() - Building.BOAT.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
+
 				}
 				if (currentlySelectedBuilding.equals("Farm")) {
 					if (getMoney() - Building.FARM.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 				}
 				if (currentlySelectedBuilding.equals("House")) {
 					if (getMoney() - Building.HOUSE.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 				}
 				if (currentlySelectedBuilding.equals("Oil Refinery")) {
 					if (getMoney() - Building.OILREFINERY.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 				}
 				if (currentlySelectedBuilding.equals("School")) {
 					if (getMoney() - Building.SCHOOL.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 				}
 				if (currentlySelectedBuilding.equals("Windfarm")) {
 					if (getMoney() - Building.WINDFARM.cost >= 0)
 						timeToBuild = true;
 					else
-						JOptionPane.showMessageDialog(frame, "You don't have enough money!");
+						try {
+							BufferedImage needMoneyImg = ImageIO.read(new File("src/swampimages/Coin_Slashed.png"));
+		                    JOptionPane.showMessageDialog(
+		                            frame,
+		                            "You don't have enough money!",
+		                            "", JOptionPane.INFORMATION_MESSAGE,
+		                            new ImageIcon(needMoneyImg));
+		                	
+						} catch (IOException i) {
+							i.printStackTrace();
+						}
 				}
 
 			}
@@ -926,8 +1074,24 @@ public class GameScreen implements Runnable {
 			JLabel paused = new JLabel("Game is paused.");
 			paused.setFont(new Font("Papyrus", Font.BOLD, 36));
 			gamePaused = true;
-			JButton closePause = new JButton("Resume");
-			JButton quitGame = new JButton("Quit");
+			
+			
+			JButton closePause = new JButton("");
+			try {
+				BufferedImage closePauseImg = ImageIO.read(new File("src/swampimages/Red_X.png"));
+				closePause.setIcon(new ImageIcon(closePauseImg));
+			} catch (IOException i) {
+				i.printStackTrace();
+			}
+
+			JButton quitGame = new JButton("");
+			try {
+				BufferedImage quitGameImg = ImageIO.read(new File("src/swampimages/Quit_Image.png"));
+				quitGame.setIcon(new ImageIcon(quitGameImg));
+			} catch (IOException i) {
+				i.printStackTrace();
+			}
+			
 			closePause.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Sound.playSound("click.wav");
@@ -990,4 +1154,25 @@ public class GameScreen implements Runnable {
 			}
 		}
 	}
+
+	// not needed anymore
+	public void drawGridlines() {
+		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
+		gridPanelGraphicsContext.setColor(Color.GRAY);
+		int xCoor = 0;
+		int xCount = 0;
+		while (xCount < 13) {
+			int yCount = 0;
+			int yCoor = 0;
+			while (yCount < 8) {
+				xCoor = xCount * 50;
+				yCoor = yCount * 50;
+				gridPanelGraphicsContext.drawRect(xCoor, yCoor, 50, 50);
+				yCount++;
+				System.out.println("Drawing gridlines");
+			}
+			xCount++;
+		}
+	}
+
 }

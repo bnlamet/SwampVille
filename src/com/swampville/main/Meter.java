@@ -8,6 +8,8 @@ import java.awt.Paint;
 
 import javax.swing.JPanel;
 
+import com.swampville.main.GameScreen.Pauses;
+
 /**
  * @author Mark Betters
 Jake Fiumara
@@ -40,6 +42,9 @@ public class Meter extends JPanel {
 		this.width = width;
 		this.height = height;
 		fillWidth = width;
+		
+		this.setBackground(new Color(102, 153, 0));
+		this.setOpaque(true);
 	}
 	
 	/**

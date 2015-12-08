@@ -15,17 +15,17 @@ public enum Building {
 	//NOTE: The name properties of the different cases 
 	//should be set to the respective image asset file names.
 	//Meter effects are the numbers and the 4th num is cost
-	OILREFINERY(0, 15, -5, 350, "Oil Refinery"),
-	WINDFARM(0,1,4,50, "Windfarm"),
-	SCHOOL(4,-1,0,100, "School"),
-	HOUSE(2,1,-1,10, "House"),
-	FARM(0,4,1,80, "Farm"),
-	BOAT(1,4,0,80, "Boat");
+	OILREFINERY(0, 20, -2, 100, "Oil Refinery"),
+	WINDFARM(0,1,1,20, "Windfarm"),
+	SCHOOL(5,3,0,150, "School"),
+	HOUSE(2,0,-1,10, "House"),
+	FARM(0,4,4,80, "Farm"),
+	BOAT(0,4,4,5, "Boat");
 	//etc
 	
 	int peopleEffect;
 	int moneyEffect;
-	int environmentEffect;
+	int enviornmentEffect;
 	
 	int cost;
 	
@@ -36,43 +36,12 @@ public enum Building {
 	 * @param meterEffect2
 	 * @param meterEffect3
 	 */
-	Building(int peopleEffect, int moneyEffect, int environmentEffect, int cost, String name) {
+	Building(int peopleEffect, int moneyEffect, int enviornmentEffect, int cost, String name) {
 		this.peopleEffect = peopleEffect;
 		this.moneyEffect = moneyEffect;
-		this.environmentEffect = environmentEffect;
+		this.enviornmentEffect = enviornmentEffect;
 		this.cost = cost;
 		this.name = name;
-	}
-	
-	public int getCost(){
-		return this.cost;
-	}
-	
-	public String getEffects(){
-		String str = "";
-		if(peopleEffect != 0){
-			if(peopleEffect > 0)
-				str += "+" + peopleEffect + "ppl/sec  ";
-			else
-				str+= peopleEffect + "ppl/sec  ";
-		}
-		
-		if(moneyEffect != 0){
-			if(moneyEffect > 0)
-				str += "+$" + moneyEffect + "/sec  ";
-			else
-				str+= "$"+moneyEffect + "/sec  ";
-		}
-		
-		if(environmentEffect != 0){
-			if(environmentEffect > 0)
-				str += "+" + environmentEffect + "env/sec  ";
-			else
-				str+= environmentEffect + "env/sec  ";
-		}
-		
-		return str;
-			
 	}
 	
 	@Override

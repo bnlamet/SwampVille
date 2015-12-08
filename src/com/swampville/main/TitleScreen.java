@@ -1,13 +1,18 @@
 package com.swampville.main;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -50,20 +55,35 @@ public class TitleScreen {
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
 		
-		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 500);
-		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][][][]"));
+		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 472);
+		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][]"));
+		
+		frame.getContentPane().setBackground(new Color(68, 102, 0));
 		
 		//frame.getContentPane().setBackground(Color.BLACK);
 		
 		JPanel titlePanel = new JPanel();
+		titlePanel.setBackground(new Color(68, 102, 0));
+		titlePanel.setOpaque(true);
 		frame.getContentPane().add(titlePanel, "cell 0 0 3 1,grow");
 		ImageIcon img = new ImageIcon("src/swampimages/swamplogo.png");
 		titlePanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
 		JLabel title = new JLabel(img);
+		title.setBackground(new Color(68, 102, 0));
+		title.setOpaque(true);
 		title.setBounds(titlePanel.getBounds());
 		titlePanel.add(title, "cell 0 0,grow");
 		
-		btnPlay = new JButton("Play");
+		btnPlay = new JButton("");
+		try {
+			BufferedImage playImg = ImageIO.read(new File("src/swampimages/Play_Image.png"));
+			btnPlay.setIcon(new ImageIcon(playImg));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		btnPlay.setBackground(new Color(102, 153, 0));
+		btnPlay.setOpaque(true);
+		btnPlay.setBorderPainted(false);
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -76,9 +96,18 @@ public class TitleScreen {
 			}
 		});
 		btnPlay.setBounds(163, 150, 117, 29);
-		frame.add(btnPlay, "cell 1 1,growx");
+		frame.add(btnPlay, "cell 1 1, grow");
 		
-		btnHelp = new JButton("Help");
+		btnHelp = new JButton("");
+		try {
+			BufferedImage helpImg = ImageIO.read(new File("src/swampimages/Help_Image.png"));
+			btnHelp.setIcon(new ImageIcon(helpImg));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		btnHelp.setBackground(new Color(102, 153, 0));
+		btnHelp.setOpaque(true);
+		btnHelp.setBorderPainted(false);
 		btnHelp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -86,9 +115,18 @@ public class TitleScreen {
 			}
 		});
 		btnHelp.setBounds(163, 191, 117, 29);
-		frame.add(btnHelp, "cell 1 2,growx");
+		frame.add(btnHelp, "cell 1 1, grow");
 		
-		btnLeaderboard = new JButton("Leaderboard");
+		btnLeaderboard = new JButton("");
+		try {
+			BufferedImage leaderboardImg = ImageIO.read(new File("src/swampimages/Leaderboard_Image.png"));
+			btnLeaderboard.setIcon(new ImageIcon(leaderboardImg));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		btnLeaderboard.setBackground(new Color(102, 153, 0));
+		btnLeaderboard.setOpaque(true);
+		btnLeaderboard.setBorderPainted(false);
 		btnLeaderboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -96,7 +134,7 @@ public class TitleScreen {
 			}
 		});
 		btnLeaderboard.setBounds(163, 250, 117, 29);
-		frame.add(btnLeaderboard, "cell 1 3,growx");
+		frame.add(btnLeaderboard, "cell 1 1, grow");
 	}
 	
 	/**

@@ -1,6 +1,7 @@
 package timer;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.ImageIcon;
@@ -10,7 +11,7 @@ import javax.swing.JPanel;
 
 import com.swampville.main.Meter;
 
-public class TimeFrame extends JPanel{
+public class TimeFrame extends JPanel {
 	
 	/**
 	 * 
@@ -26,6 +27,8 @@ public class TimeFrame extends JPanel{
 	
 	public TimeFrame(){
 		timer = new Timer(this);
+		time.setFont(new Font("Papyrus", Font.BOLD, 24));
+		time.setForeground(Color.WHITE);
 		add(time);
 		
 		/*JLabel timeIcon = new JLabel();
@@ -36,6 +39,9 @@ public class TimeFrame extends JPanel{
 		add(timeMeter, BorderLayout.WEST);*/
 		
 		timer.startTimer();
+		
+		this.setBackground(new Color(102, 153, 0));
+		this.setOpaque(true);
 	}
 	public void update(long dT){
 		// convert milliseconds into other forms
