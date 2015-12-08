@@ -47,16 +47,16 @@ public class GameScreen implements Runnable {
 	boolean tileHighlighted = false;
 
 	boolean gameActive = false;
-	
+
 	String future;
 
 	int buildAnimationLength = 150;
 	int buildAnimationCounter = 0;
-	
+
 	int infoAnimationLength = 42;
 	int infoAnimationCounter = 0;
-	
-	int timeLimit = 10;
+
+	int timeLimit = 2;
 
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
@@ -167,7 +167,7 @@ public class GameScreen implements Runnable {
 
 		//////////////// ADDING STOP TO GAME FRAME/////////////////////////
 
-		stop = new JButton("Pause");
+		stop = new JButton();
 
 		try {
 			BufferedImage stopImg = ImageIO.read(new File("src/swampimages/stop.png"));
@@ -177,11 +177,12 @@ public class GameScreen implements Runnable {
 		}
 
 		stop.addActionListener(new Pauses());
+		stop.setBackground(new Color(80,98,0));
 		frame.getContentPane().add(stop, "cell 1 3,grow");
 
 		//////////////// ADDING HAMMER TO GAME FRAME/////////////////////////
 
-		hammer = new JButton("Build");
+		hammer = new JButton();
 
 		try {
 			BufferedImage hammerImg = ImageIO.read(new File("src/swampimages/hammer.png"));
@@ -197,6 +198,7 @@ public class GameScreen implements Runnable {
 				toggleButtons(false);
 			}
 		});
+		hammer.setBackground(new Color(80,98,0));
 		frame.getContentPane().add(hammer, "cell 1 4,grow");
 
 		//////////////// ADDING TIME TO GAME FRAME/////////////////////////
@@ -314,7 +316,7 @@ public class GameScreen implements Runnable {
 			}
 		});
 	}
-	
+
 	private int calculateScore() {
 
 		future = "";
@@ -331,7 +333,7 @@ public class GameScreen implements Runnable {
 		if (envMeter.getValue() < 50) {
 			finalScore -= 2000;
 
-			future += "Your enviornment would be worse off than when you started.\nRemember, you can sustain a population while maintaining a healthy estuary!\nBalance is key!!\n\n";
+			future += "Your environment would be worse off than when you started.\nRemember, you can sustain a population while maintaining a healthy estuary!\nBalance is key!!\n\n";
 
 		}
 		if (pplMeter.getValue() < 10) {
@@ -394,7 +396,7 @@ public class GameScreen implements Runnable {
 		try {
 			makinMagic();
 			updateBuildings();
-			
+
 			if (buildAnimationCounter >= buildAnimationLength) {
 				buildAnimationCounter = 0;
 				if (animationCount < 4) {
@@ -426,7 +428,7 @@ public class GameScreen implements Runnable {
 				updateMeters();
 			}
 
-			if (t.getSeconds() == timeLimit) {
+			if (t.getMinutes() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
 			}
 
@@ -609,38 +611,38 @@ public class GameScreen implements Runnable {
 		int newMoneyDelta = 0;
 
 		if (buildingStr.equals("Boat")) {
-			newEnvironmentDelta = Building.BOAT.enviornmentEffect;
+			newEnvironmentDelta = Building.BOAT.environmentEffect;
 			newPeopleDelta = Building.BOAT.peopleEffect;
 			newMoneyDelta = Building.BOAT.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.BOAT.cost));
 		}
 		if (buildingStr.equals("Farm")) {
-			newEnvironmentDelta = Building.FARM.enviornmentEffect;
+			newEnvironmentDelta = Building.FARM.environmentEffect;
 			newPeopleDelta = Building.FARM.peopleEffect;
 			newMoneyDelta = Building.FARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.FARM.cost));
 		}
 		if (buildingStr.equals("House")) {
-			newEnvironmentDelta = Building.HOUSE.enviornmentEffect;
+			newEnvironmentDelta = Building.HOUSE.environmentEffect;
 			newPeopleDelta = Building.HOUSE.peopleEffect;
 			newMoneyDelta = Building.HOUSE.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.HOUSE.cost));
 		}
 		if (buildingStr.equals("Oil Refinery")) {
-			newEnvironmentDelta = Building.OILREFINERY.enviornmentEffect;
+			newEnvironmentDelta = Building.OILREFINERY.environmentEffect;
 			newPeopleDelta = Building.OILREFINERY.peopleEffect;
 			newMoneyDelta = Building.OILREFINERY.moneyEffect;
 			this.moneyLbl
 					.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.OILREFINERY.cost));
 		}
 		if (buildingStr.equals("School")) {
-			newEnvironmentDelta = Building.SCHOOL.enviornmentEffect;
+			newEnvironmentDelta = Building.SCHOOL.environmentEffect;
 			newPeopleDelta = Building.SCHOOL.peopleEffect;
 			newMoneyDelta = Building.SCHOOL.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.SCHOOL.cost));
 		}
 		if (buildingStr.equals("Windfarm")) {
-			newEnvironmentDelta = Building.WINDFARM.enviornmentEffect;
+			newEnvironmentDelta = Building.WINDFARM.environmentEffect;
 			newPeopleDelta = Building.WINDFARM.peopleEffect;
 			newMoneyDelta = Building.WINDFARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.WINDFARM.cost));
@@ -661,7 +663,6 @@ public class GameScreen implements Runnable {
 		frame.getContentPane().revalidate();
 		new FutureScreen(frame, score, future);
 	}
-
 
 	public void triggerEvent() {
 		// put up eventPopup
@@ -693,14 +694,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnOilRefinery, gbc_rdbtnOilRefinery);
 		buildBtns.add(rdbtnOilRefinery);
 
-		JLabel lblOilDesc = new JLabel("Costs $100");
+		JLabel lblOilDesc = new JLabel("Costs $" + Building.OILREFINERY.getCost());
 		GridBagConstraints gbc_lblOilDesc = new GridBagConstraints();
 		gbc_lblOilDesc.insets = new Insets(0, 0, 5, 5);
 		gbc_lblOilDesc.gridx = 2;
 		gbc_lblOilDesc.gridy = 0;
 		buildPopup.add(lblOilDesc, gbc_lblOilDesc);
 
-		JLabel lblOilMeterEffect = new JLabel("-2 env/sec, +$20/sec");
+		JLabel lblOilMeterEffect = new JLabel(Building.OILREFINERY.getEffects());
 		GridBagConstraints gbc_lblOilMeterEffect = new GridBagConstraints();
 		gbc_lblOilMeterEffect.insets = new Insets(0, 0, 5, 0);
 		gbc_lblOilMeterEffect.gridx = 3;
@@ -716,14 +717,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnWindTurbine, gbc_rdbtnWindTurbine);
 		buildBtns.add(rdbtnWindTurbine);
 
-		JLabel label = new JLabel("Costs $20");
+		JLabel label = new JLabel("Costs $" + Building.WINDFARM.getCost());
 		GridBagConstraints gbc_label = new GridBagConstraints();
 		gbc_label.insets = new Insets(0, 0, 5, 5);
 		gbc_label.gridx = 2;
 		gbc_label.gridy = 1;
 		buildPopup.add(label, gbc_label);
 
-		JLabel label_1 = new JLabel("+1 env/sec, +$1/sec,");
+		JLabel label_1 = new JLabel(Building.WINDFARM.getEffects());
 		GridBagConstraints gbc_label_1 = new GridBagConstraints();
 		gbc_label_1.insets = new Insets(0, 0, 5, 0);
 		gbc_label_1.gridx = 3;
@@ -739,14 +740,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnSchool, gbc_rdbtnSchool);
 		buildBtns.add(rdbtnSchool);
 
-		JLabel label_2 = new JLabel("Costs $150");
+		JLabel label_2 = new JLabel("Costs $" + Building.SCHOOL.getCost());
 		GridBagConstraints gbc_label_2 = new GridBagConstraints();
 		gbc_label_2.insets = new Insets(0, 0, 5, 5);
 		gbc_label_2.gridx = 2;
 		gbc_label_2.gridy = 2;
 		buildPopup.add(label_2, gbc_label_2);
 
-		JLabel label_3 = new JLabel("+5 ppl/sec, +$3/sec");
+		JLabel label_3 = new JLabel(Building.SCHOOL.getEffects());
 		GridBagConstraints gbc_label_3 = new GridBagConstraints();
 		gbc_label_3.insets = new Insets(0, 0, 5, 0);
 		gbc_label_3.gridx = 3;
@@ -762,14 +763,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnHouse, gbc_rdbtnHouse);
 		buildBtns.add(rdbtnHouse);
 
-		JLabel label_4 = new JLabel("Costs $10");
+		JLabel label_4 = new JLabel("Costs $" + Building.HOUSE.getCost());
 		GridBagConstraints gbc_label_4 = new GridBagConstraints();
 		gbc_label_4.insets = new Insets(0, 0, 5, 5);
 		gbc_label_4.gridx = 2;
 		gbc_label_4.gridy = 3;
 		buildPopup.add(label_4, gbc_label_4);
 
-		JLabel label_5 = new JLabel("-1 env/sec, +2 ppl/sec");
+		JLabel label_5 = new JLabel(Building.HOUSE.getEffects());
 		GridBagConstraints gbc_label_5 = new GridBagConstraints();
 		gbc_label_5.insets = new Insets(0, 0, 5, 0);
 		gbc_label_5.gridx = 3;
@@ -785,14 +786,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnFarm, gbc_rdbtnFarm);
 		buildBtns.add(rdbtnFarm);
 
-		JLabel label_6 = new JLabel("Costs $80");
+		JLabel label_6 = new JLabel("Costs $" + Building.FARM.getCost());
 		GridBagConstraints gbc_label_6 = new GridBagConstraints();
 		gbc_label_6.insets = new Insets(0, 0, 5, 5);
 		gbc_label_6.gridx = 2;
 		gbc_label_6.gridy = 4;
 		buildPopup.add(label_6, gbc_label_6);
 
-		JLabel label_7 = new JLabel("+4 env/sec, +$4/sec");
+		JLabel label_7 = new JLabel(Building.FARM.getEffects());
 		GridBagConstraints gbc_label_7 = new GridBagConstraints();
 		gbc_label_7.insets = new Insets(0, 0, 5, 0);
 		gbc_label_7.gridx = 3;
@@ -808,14 +809,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnBoat, gbc_rdbtnBoat);
 		buildBtns.add(rdbtnBoat);
 
-		JLabel label_8 = new JLabel("Costs $5");
+		JLabel label_8 = new JLabel("$" + Building.BOAT.getCost());
 		GridBagConstraints gbc_label_8 = new GridBagConstraints();
 		gbc_label_8.insets = new Insets(0, 0, 5, 5);
 		gbc_label_8.gridx = 2;
 		gbc_label_8.gridy = 5;
 		buildPopup.add(label_8, gbc_label_8);
 
-		JLabel label_9 = new JLabel("+4 env/sec, +$4/sec");
+		JLabel label_9 = new JLabel(Building.BOAT.getEffects());
 		GridBagConstraints gbc_label_9 = new GridBagConstraints();
 		gbc_label_9.insets = new Insets(0, 0, 5, 0);
 		gbc_label_9.gridx = 3;
