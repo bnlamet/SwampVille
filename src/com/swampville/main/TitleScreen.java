@@ -1,7 +1,5 @@
 package com.swampville.main;
 
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -20,10 +18,6 @@ public class TitleScreen {
 	JButton btnPlay;
 	JButton btnHelp;
 	JButton btnLeaderboard;
-	
-	JLabel background;
-	
-	Container contentPane;
 
 	Sound s = new Sound();
 	
@@ -45,15 +39,6 @@ public class TitleScreen {
 		frame.revalidate();
 	}
 	
-	private void setBackground(){
-		background = new JLabel();
-		ImageIcon bg = new ImageIcon("src/swampimages/titlebg.png");
-		background.setIcon(bg);
-		frame.setContentPane(background);
-		frame.revalidate();
-		frame.repaint();
-	}
-	
 	/**
 	 * Invoked by the TitleScreen constructor.
 	 * This puts our title image on the frame, and creates three buttons - 
@@ -61,48 +46,39 @@ public class TitleScreen {
 	 * to maneuver through the application. 
 	 */
 	public void initializeScreen() {
-		contentPane = frame.getContentPane();
 		
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
-		
-		setBackground();
 		
 		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 500);
 		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][][][]"));
 		
 		//frame.getContentPane().setBackground(Color.BLACK);
 		
-		//JPanel titlePanel = new JPanel();
-		//frame.getContentPane().add(titlePanel, "cell 0 0 3 1,grow");
-		//ImageIcon img = new ImageIcon("src/swampimages/swamplogo.png");
-		//titlePanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
-		//JLabel title = new JLabel();
-		//title.setBounds(titlePanel.getBounds());
-		//titlePanel.add(title, "cell 0 0,grow");
+		JPanel titlePanel = new JPanel();
+		frame.getContentPane().add(titlePanel, "cell 0 0 3 1,grow");
+		ImageIcon img = new ImageIcon("src/swampimages/swamplogo.png");
+		titlePanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		JLabel title = new JLabel(img);
+		title.setBounds(titlePanel.getBounds());
+		titlePanel.add(title, "cell 0 0,grow");
 		
-		btnPlay = new JButton();
-		btnPlay.setPreferredSize(new Dimension(105,26));
-		btnPlay.setOpaque(false);
-		btnPlay.setContentAreaFilled(false);
+		btnPlay = new JButton("Play");
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
 				try {
-					transitionToGameScreen();
+					playBtnPressed();
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		});
-		btnPlay.setBounds(163, 150, 117, 26);
+		btnPlay.setBounds(163, 150, 117, 29);
 		frame.add(btnPlay, "cell 1 1,growx");
 		
-		btnHelp = new JButton();
-		btnHelp.setPreferredSize(new Dimension(105,26));
-		btnHelp.setOpaque(false);
-		btnHelp.setContentAreaFilled(false);
+		btnHelp = new JButton("Help");
 		btnHelp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -112,10 +88,7 @@ public class TitleScreen {
 		btnHelp.setBounds(163, 191, 117, 29);
 		frame.add(btnHelp, "cell 1 2,growx");
 		
-		btnLeaderboard = new JButton();
-		btnLeaderboard.setPreferredSize(new Dimension(105,26));
-		btnLeaderboard.setOpaque(false);
-		btnLeaderboard.setContentAreaFilled(false);
+		btnLeaderboard = new JButton("Leaderboard");
 		btnLeaderboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Sound.playSound("click.wav");
@@ -133,11 +106,21 @@ public class TitleScreen {
 	 * passing the frame and the difficulty param to it.
 	 * @throws IOException 
 	 */
-	public void transitionToGameScreen() throws IOException {
-		frame.setContentPane(contentPane);
+	public void transitionToGameScreen(String difficulty) throws IOException {
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
-		new GameScreen(frame);
+		new GameScreen(frame, difficulty);
+	}
+	
+	/**
+	 * When the play button is pressed, this method is invoked 
+	 * in order to display difficulty buttons to the user.
+	 * @throws IOException 
+	 */
+	public void playBtnPressed() throws IOException {
+		frame.getContentPane().removeAll();
+		frame.getContentPane().repaint();
+		this.transitionToGameScreen("Easy");
 	}
 	
 	/**
@@ -145,7 +128,6 @@ public class TitleScreen {
 	 * in order to transition to InstructionScreen.
 	 */
 	public void instructionsBtnPressed() {
-		frame.setContentPane(contentPane);
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		new InstructionsScreen(frame);
@@ -162,7 +144,6 @@ public class TitleScreen {
 	 * in order to transition to LeaderboardScreen. 
 	 */
 	public void leaderboardsBtnPressed() {
-		frame.setContentPane(contentPane);
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		new LeaderboardScreen(frame, -1);
