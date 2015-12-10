@@ -68,7 +68,7 @@ public class GameScreen implements Runnable {
 	int infoAnimationLength = 42;
 	int infoAnimationCounter = 0;
 	
-	int timeLimit = 40000;
+	int timeLimit = 3;
 
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
@@ -484,7 +484,7 @@ public class GameScreen implements Runnable {
 				updateMeters();
 			}
 
-			if (t.getSeconds() == timeLimit) {
+			if (t.getMinutes() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
 			}
 
@@ -519,8 +519,8 @@ public class GameScreen implements Runnable {
 					}
 					if (buildingCodes[x][y] == 7) { // School
 						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")),
-									xCoor, yCoor, this.gridPanel);
+							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")), xCoor,
+									yCoor, this.gridPanel);
 						}
 					}
 					if (buildingCodes[x][y] == 8) { // House
@@ -531,8 +531,8 @@ public class GameScreen implements Runnable {
 					}
 					if (buildingCodes[x][y] == 9) { // Farm
 						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")),
-									xCoor, yCoor, this.gridPanel);
+							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")), xCoor,
+									yCoor, this.gridPanel);
 						}
 					}
 					if (buildingCodes[x][y] == 4) { // Boat
