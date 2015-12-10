@@ -21,7 +21,13 @@ public enum Building {
 	HOUSE(2,0,-1,10, "House"),
 	FARM(0,4,4,80, "Farm"),
 	BOAT(0,4,4,5, "Boat");
-	//etc
+	
+	static final int oilRefineryNumSecsTillGoodieFinal = 25;
+	static final int windFarmNumSecsTillGoodieFinal = 15;
+	static final int schoolNumSecsTillGoodieFinal = 10;
+	static final int houseNumSecsTillGoodieFinal = 5;
+	static final int farmNumSecsTillGoodieFinal = 5;
+	static final int boatNumSecsTillGoodieFinal = 7;
 	
 	int peopleEffect;
 	int moneyEffect;

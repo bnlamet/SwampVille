@@ -23,9 +23,6 @@ public class TitleScreen {
 	JButton btnPlay;
 	JButton btnHelp;
 	JButton btnLeaderboard;
-	JRadioButton rdbtnDemoMode;
-	
-	boolean demoActive = true;
 
 	Sound s = new Sound();
 	
@@ -59,7 +56,7 @@ public class TitleScreen {
 		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
 		
 		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 472);
-		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][][]"));
+		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][]"));
 		
 		frame.getContentPane().setBackground(new Color(68, 102, 0));
 		
@@ -138,10 +135,6 @@ public class TitleScreen {
 		});
 		btnLeaderboard.setBounds(163, 250, 117, 29);
 		frame.add(btnLeaderboard, "cell 1 1, grow");
-		
-		rdbtnDemoMode = new JRadioButton("Demo Mode");
-		rdbtnDemoMode.setSelected(true);
-		frame.getContentPane().add(rdbtnDemoMode, "cell 1 2, growx");
 	}
 	
 	/**
@@ -154,13 +147,7 @@ public class TitleScreen {
 	public void transitionToGameScreen(String difficulty) throws IOException {
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
-		
-		if (rdbtnDemoMode.isSelected()){
-			new DemoScreen(frame);
-		}
-		else {
-			new GameScreen(frame, 0);
-		}
+		new GameScreen(frame, difficulty);
 	}
 	
 	/**
