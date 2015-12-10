@@ -3,18 +3,23 @@ package com.swampville.main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.io.File;
@@ -37,6 +42,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import net.miginfocom.swing.MigLayout;
 import timer.TimeFrame;
@@ -87,6 +95,7 @@ public class GameScreen implements Runnable {
 	int pplLblDelta;
 	int moneyLblDelta;
 	int oneSecCounter = 0;
+	int demoBuilding;
 	int[][] buildingCodes = { { 0, 0, 0, 0, 0, 2, 2, 1, 1 }, { 0, 0, 0, 0, 2, 2, 1, 1, 1 },
 			{ 0, 0, 0, 0, 2, 1, 1, 1, 1 }, { 0, 0, 0, 0, 2, 2, 2, 1, 1 }, { 2, 0, 0, 2, 2, 2, 2, 2, 1 },
 			{ 2, 2, 2, 2, 2, 0, 0, 2, 1 }, { 2, 0, 0, 2, 0, 0, 2, 2, 1 }, { 0, 0, 2, 2, 0, 0, 0, 2, 1 },
@@ -100,12 +109,30 @@ public class GameScreen implements Runnable {
 	 * @param difficulty
 	 * @throws IOException
 	 */
-	public GameScreen(JFrame frame, String difficulty) throws IOException {
+	public GameScreen(JFrame frame, int demoBuilding) throws IOException {
 
-		this.difficulty = difficulty;
+		this.demoBuilding = demoBuilding;
 		this.frame = frame;
 		this.initializeGameScreen();
 		gameActive = true;
+
+		buildingCodes[2][1] = demoBuilding;
+		
+		if (demoBuilding == 5) {
+			addBuilding("Oil Refinery");
+		}
+		if (demoBuilding == 6) {
+			addBuilding("Windfarm");
+		}
+		if (demoBuilding == 7) {
+			addBuilding("School");
+		}
+		if (demoBuilding == 8) {
+			addBuilding("House");
+		}
+		if (demoBuilding == 9) {
+			addBuilding("Farm");
+		}
 
 		ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
 		executor2.scheduleAtFixedRate(this, 0, 1, TimeUnit.MILLISECONDS);
@@ -217,6 +244,8 @@ public class GameScreen implements Runnable {
 		t = new TimeFrame();
 		frame.getContentPane().add(t, "cell 1 5,grow, center");
 
+//		new ArcProgress(frame, 120);
+		
 		/////////////////////////////////////////////////////////////
 
 		// Create pop-up for the building list for later use
@@ -235,6 +264,7 @@ public class GameScreen implements Runnable {
 		 * environment.add(environmentLbl);
 		 */
 
+		
 		JLabel envImg = new JLabel();
 		ImageIcon environmentImg = new ImageIcon("src/swampimages/Blue_Recycle_Symbol.png");
 		envImg.setIcon(environmentImg);
@@ -1174,5 +1204,5 @@ public class GameScreen implements Runnable {
 			xCount++;
 		}
 	}
-
+	
 }
