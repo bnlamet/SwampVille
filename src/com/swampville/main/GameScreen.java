@@ -767,7 +767,7 @@ public class GameScreen implements Runnable {
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		buildPopup.setLayout(gridBagLayout);
 
-        java.net.URL url = GameScreen.class.getResource("/swampimages/Oil Refinery.png");
+        java.net.URL url = GameScreen.class.getResource("/swampimages/transOil Refinery.png");
         String html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Oil Refinery</p>";
 		JRadioButton rdbtnOilRefinery = new JRadioButton(html);
 		rdbtnOilRefinery.setName("Oil Refinery");
@@ -793,7 +793,7 @@ public class GameScreen implements Runnable {
 		gbc_lblOilMeterEffect.gridy = 0;
 		buildPopup.add(lblOilMeterEffect, gbc_lblOilMeterEffect);
 
-        url = GameScreen.class.getResource("/swampimages/Windfarm.png");
+        url = GameScreen.class.getResource("/swampimages/transWindfarm.png");
         html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Windfarm</p>";
 		JRadioButton rdbtnWindTurbine = new JRadioButton(html);
 		rdbtnWindTurbine.setName("Windfarm");
@@ -819,7 +819,7 @@ public class GameScreen implements Runnable {
 		gbc_label_1.gridy = 1;
 		buildPopup.add(label_1, gbc_label_1);
 		
-        url = GameScreen.class.getResource("/swampimages/School.png");
+        url = GameScreen.class.getResource("/swampimages/transSchool.png");
         html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>School</p>";
 		JRadioButton rdbtnSchool = new JRadioButton(html);
 		rdbtnSchool.setName("School");

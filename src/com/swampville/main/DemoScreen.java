@@ -216,6 +216,7 @@ public class DemoScreen implements Runnable {
 			}
 		});
 		frame.getContentPane().add(hammer, "cell 1 4,grow");
+		hammer.setEnabled(false);
 
 		//////////////// ADDING TIME TO GAME FRAME/////////////////////////
 
@@ -450,7 +451,7 @@ public class DemoScreen implements Runnable {
 			Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
 			gridPanelGraphicsContext.setColor(Color.YELLOW);
 			gridPanelGraphicsContext.drawRect(100, 50, 50, 50);
-			
+			hammer.setEnabled(true);
 			hammer.setBorderPainted(true);
 		}
 		
@@ -772,7 +773,7 @@ public class DemoScreen implements Runnable {
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		buildPopup.setLayout(gridBagLayout);
 
-		java.net.URL url = GameScreen.class.getResource("/swampimages/Oil Refinery.png");
+		java.net.URL url = GameScreen.class.getResource("/swampimages/transOil Refinery.png");
 		String html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Oil Refinery</p>";
 		JRadioButton rdbtnOilRefinery = new JRadioButton(html);
 		rdbtnOilRefinery.setName("Oil Refinery");
@@ -798,7 +799,7 @@ public class DemoScreen implements Runnable {
 		gbc_lblOilMeterEffect.gridy = 0;
 		buildPopup.add(lblOilMeterEffect, gbc_lblOilMeterEffect);
 
-		url = GameScreen.class.getResource("/swampimages/Windfarm.png");
+		url = GameScreen.class.getResource("/swampimages/transWindfarm.png");
 		html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>Windfarm</p>";
 		JRadioButton rdbtnWindTurbine = new JRadioButton(html);
 		rdbtnWindTurbine.setName("Windfarm");
@@ -824,7 +825,7 @@ public class DemoScreen implements Runnable {
 		gbc_label_1.gridy = 1;
 		buildPopup.add(label_1, gbc_label_1);
 
-		url = GameScreen.class.getResource("/swampimages/School.png");
+		url = GameScreen.class.getResource("/swampimages/transSchool.png");
 		html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>School</p>";
 		JRadioButton rdbtnSchool = new JRadioButton(html);
 		rdbtnSchool.setName("School");
@@ -850,7 +851,7 @@ public class DemoScreen implements Runnable {
 		gbc_label_3.gridy = 2;
 		buildPopup.add(label_3, gbc_label_3);
 
-		url = GameScreen.class.getResource("/swampimages/House.png");
+		url = GameScreen.class.getResource("/swampimages/transHouse.png");
 		html = "<html><body><img src='" + url.toString() +"' height='25' width='25'><p>House</p>";
 		JRadioButton rdbtnHouse = new JRadioButton(html);
 		rdbtnHouse.setName("House");
