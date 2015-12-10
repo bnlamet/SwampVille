@@ -24,7 +24,9 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,10 @@ public class GameScreen implements Runnable {
 	Tile[][] grid;
 	JPanel gridPanel;
 
+	JLabel gridLabel;
+	
+	ArrayList<BuildingTile> buildingTiles;
+	
 	Tile currentlySelectedTile;
 
 	boolean tileHighlighted = false;
@@ -116,6 +122,8 @@ public class GameScreen implements Runnable {
 		this.initializeGameScreen();
 		gameActive = true;
 
+		this.buildingTiles = new ArrayList<BuildingTile>();
+		
 		buildingCodes[2][1] = demoBuilding;
 		
 		if (demoBuilding == 5) {
@@ -136,6 +144,7 @@ public class GameScreen implements Runnable {
 
 		ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
 		executor2.scheduleAtFixedRate(this, 0, 1, TimeUnit.MILLISECONDS);
+		Collections.synchronizedList(this.buildingTiles);
 	}
 
 	@Override
@@ -328,7 +337,7 @@ public class GameScreen implements Runnable {
 		BufferedImage gridImg;
 		try {
 			gridImg = ImageIO.read(new File("src/swampimages/easyswamp.png"));
-			JLabel gridLabel = new JLabel();
+			gridLabel = new JLabel();
 			gridLabel.setIcon(new ImageIcon(gridImg));
 			gridPanel.setLayout(new MigLayout("fill, insets 0", "", ""));
 			gridPanel.add(gridLabel, "aligny top");
@@ -445,6 +454,14 @@ public class GameScreen implements Runnable {
 		// frame.getContentPane().repaint();
 	}
 
+	private void paintAllGoodies() {
+		for (BuildingTile bt : this.buildingTiles) {
+			if (bt.getGoodiePresent() == true) {
+				this.paintGoodie(bt.getBuildingType(), bt.getXPos(), bt.getYPos());
+			}
+		}
+	}
+	
 	private void update() {
 		oneSecCounter++;
 		buildAnimationCounter++;
@@ -452,6 +469,7 @@ public class GameScreen implements Runnable {
 		try {
 			makinMagic();
 			updateBuildings();
+			paintAllGoodies();
 			
 			if (buildAnimationCounter >= buildAnimationLength) {
 				buildAnimationCounter = 0;
@@ -482,8 +500,13 @@ public class GameScreen implements Runnable {
 			oneSecCounter = 0;
 			if (gamePaused == false) {
 				updateMeters();
+				
+				for (BuildingTile bt: this.buildingTiles) {
+					bt.updateInOneSec();
+				}
 			}
 
+			System.out.println(this.buildingTiles);
 			if (t.getMinutes() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
 			}
@@ -696,18 +719,24 @@ public class GameScreen implements Runnable {
 			newPeopleDelta = Building.BOAT.peopleEffect;
 			newMoneyDelta = Building.BOAT.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.BOAT.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.boatNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 		if (buildingStr.equals("Farm")) {
 			newEnvironmentDelta = Building.FARM.enviornmentEffect;
 			newPeopleDelta = Building.FARM.peopleEffect;
 			newMoneyDelta = Building.FARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.FARM.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.farmNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 		if (buildingStr.equals("House")) {
 			newEnvironmentDelta = Building.HOUSE.enviornmentEffect;
 			newPeopleDelta = Building.HOUSE.peopleEffect;
 			newMoneyDelta = Building.HOUSE.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.HOUSE.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.houseNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 		if (buildingStr.equals("Oil Refinery")) {
 			newEnvironmentDelta = Building.OILREFINERY.enviornmentEffect;
@@ -715,18 +744,24 @@ public class GameScreen implements Runnable {
 			newMoneyDelta = Building.OILREFINERY.moneyEffect;
 			this.moneyLbl
 					.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.OILREFINERY.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.oilRefineryNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 		if (buildingStr.equals("School")) {
 			newEnvironmentDelta = Building.SCHOOL.enviornmentEffect;
 			newPeopleDelta = Building.SCHOOL.peopleEffect;
 			newMoneyDelta = Building.SCHOOL.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.SCHOOL.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.schoolNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 		if (buildingStr.equals("Windfarm")) {
 			newEnvironmentDelta = Building.WINDFARM.enviornmentEffect;
 			newPeopleDelta = Building.WINDFARM.peopleEffect;
 			newMoneyDelta = Building.WINDFARM.moneyEffect;
 			this.moneyLbl.setText(Integer.toString(Integer.valueOf(this.moneyLbl.getText()) - Building.WINDFARM.cost));
+			BuildingTile bt = new BuildingTile(buildingStr, this.mouseXCorr, this.mouseYCorr, Building.windFarmNumSecsTillGoodieFinal);
+			this.buildingTiles.add(bt);
 		}
 
 		this.environmentLblDelta = this.environmentLblDelta + newEnvironmentDelta;
@@ -1185,6 +1220,18 @@ public class GameScreen implements Runnable {
 		}
 	}
 
+	public void paintGoodie(String buildingType, int xPos, int yPos) {
+		if (buildingType.equals("Boat")) {
+			try {
+				System.out.println("Adding Fish Goodie");
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Fish_Goodie.png")), xPos, yPos, this.gridPanel);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	// not needed anymore
 	public void drawGridlines() {
 		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();

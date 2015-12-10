@@ -5,8 +5,11 @@ import java.awt.event.ActionEvent;
 import java.io.*;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
 import net.miginfocom.swing.MigLayout;
@@ -55,11 +58,11 @@ public class LeaderboardScreen implements ActionListener {
 	    frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow][grow][grow][grow][]"));
 		
 	    //Scores
-	    JTextPane topThree = new JTextPane();
-		topThree.setFont(new Font("Tahoma", Font.PLAIN, 31));
-		topThree.setEditable(false);
-		topThree.setText("Top Three Scores");
-		frame.getContentPane().add(topThree, "cell 0 0,alignx center, wrap");
+	    JPanel titlePanel = new JPanel();
+		ImageIcon img = new ImageIcon("src/swampimages/leaderboard.png");
+		JLabel title = new JLabel(img);
+		title.setBounds(titlePanel.getBounds());
+		frame.getContentPane().add(title, "cell 0 0, wrap, center");
 
 		//Highest Score
 		JTextPane scoreOne = new JTextPane();
