@@ -48,11 +48,15 @@ public class TimeFrame extends JPanel {
 		this.minutes = (dT/60000)%1000;
 		this.seconds = (dT/1000)%60;
 		
-		time.setText(String.valueOf((dT/60000)%1000) + ":" + String.valueOf((dT/1000)%60));
+		String minuteStr = String.valueOf((dT/60000)%1000);
+		String secondsStr = String.valueOf((dT/1000)%60);
+		
+		if (secondsStr.length() == 1) {
+			secondsStr = "0" + String.valueOf((dT/1000)%60);
+		}
+		
+		time.setText(minuteStr + ":" + secondsStr);
 		time.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
-		
-		
-		
 		
 	}
 	
