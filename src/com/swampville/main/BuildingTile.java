@@ -29,6 +29,7 @@ public class BuildingTile {
 			this.numSecsTillGoodie = this.numSecsTillGoodieFinal;
 		} else {
 			this.numSecsTillGoodie--;
+//			goodiePresent = false;
 		}
 	}
 	
@@ -42,6 +43,10 @@ public class BuildingTile {
 	
 	public boolean getGoodiePresent() {
 		return this.goodiePresent;
+	}
+	
+	public void setGoodiePresent(boolean whatsupBruh) {
+		this.goodiePresent = whatsupBruh;
 	}
 	
 	public String getBuildingType() {

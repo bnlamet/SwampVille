@@ -378,6 +378,29 @@ public class GameScreen implements Runnable {
 				}
 				// For Testing Purposes:
 				System.out.println(mouseXCorr + ", " + mouseYCorr);
+				
+				int x = e.getX();
+				int y = e.getY();
+				
+				for (BuildingTile bt : buildingTiles) {
+					if (bt.getGoodiePresent() == true) {
+						if (bt.getXPos() == x && bt.getYPos() == y) {
+							if (buildAnimationCounter >= buildAnimationLength) {
+								try {
+									gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/" + bt.getBuildingType() + ".png")),
+											bt.getXPos(), bt.getYPos(), gridPanel);
+									bt.setGoodiePresent(false);
+								} catch (IOException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}
+						}
+					}
+				}
+				
+				
+				
 			}
 		});
 	}
@@ -1230,6 +1253,7 @@ public class GameScreen implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		
 	}
 	
 	// not needed anymore
