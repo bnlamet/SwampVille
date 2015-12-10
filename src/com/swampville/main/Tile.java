@@ -28,7 +28,7 @@ public class Tile {
 	
 	public boolean hasBuilding = false;
 	
-	static final int tileSideLength = 50;
+	static final int tileSideLength = 5;
 	
 	/**
 	 * @param xPos
