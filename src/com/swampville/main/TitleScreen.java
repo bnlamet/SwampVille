@@ -58,6 +58,8 @@ public class TitleScreen {
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Rectangle screenSize = new Rectangle((new Point(0,0)), tk.getScreenSize());
 		
+		frame.setLocationRelativeTo(null);
+		
 		frame.setBounds(screenSize.width / 5, screenSize.height / 4, 900, 472);
 		frame.getContentPane().setLayout(new MigLayout("", "[grow][grow][grow]", "[grow][][]"));
 		

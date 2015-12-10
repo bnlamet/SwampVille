@@ -357,6 +357,8 @@ public class GameScreen implements Runnable {
 				mouseXCorr = gridCorr(e.getX(), e.getY())[0];
 				mouseYCorr = gridCorr(e.getX(), e.getY())[1];
 
+				eraseGoodieIfAtPosition(mouseXCorr, mouseYCorr);
+				
 				if (buildingCodes[mouseXCorr / 50][mouseYCorr / 50] == 2) {
 					
 					try {
@@ -379,30 +381,18 @@ public class GameScreen implements Runnable {
 				// For Testing Purposes:
 				System.out.println(mouseXCorr + ", " + mouseYCorr);
 				
-				int x = e.getX();
-				int y = e.getY();
-				
-				for (BuildingTile bt : buildingTiles) {
-					if (bt.getGoodiePresent() == true) {
-						if (bt.getXPos() == x && bt.getYPos() == y) {
-							if (buildAnimationCounter >= buildAnimationLength) {
-								try {
-									gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/" + bt.getBuildingType() + ".png")),
-											bt.getXPos(), bt.getYPos(), gridPanel);
-									bt.setGoodiePresent(false);
-								} catch (IOException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							}
-						}
-					}
-				}
-				
-				
-				
 			}
 		});
+	}
+	
+	public void eraseGoodieIfAtPosition(int xPos, int yPos) {
+		for (BuildingTile bt : this.buildingTiles) {
+			if (bt.getXPos() == xPos && bt.getYPos() == yPos && bt.goodiePresent) {
+				this.eraseGoodie(bt);
+				bt.goodiePresent = false;
+				return;
+			}
+		}
 	}
 	
 	private int calculateScore() {
@@ -481,6 +471,7 @@ public class GameScreen implements Runnable {
 		for (BuildingTile bt : this.buildingTiles) {
 			if (bt.getGoodiePresent() == true) {
 				this.paintGoodie(bt.getBuildingType(), bt.getXPos(), bt.getYPos());
+				bt.goodiePainted = true;
 			}
 		}
 	}
@@ -539,59 +530,111 @@ public class GameScreen implements Runnable {
 
 	public void updateBuildings() throws IOException {
 
-		for (int x = 0; x < 14; x++) {
-			for (int y = 0; y < 9; y++) {
-				if (buildingCodes[x][y] > 3) {
-
-					int xCoor = x * 50;
-					int yCoor = y * 50;
-					if (buildingCodes[x][y] == 5) { // Oil Refinery
-						int yCoorT = yCoor;
-						while (yCoorT > yCoor - 50) {
-							yCoorT--;
-						}
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(
-									ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")),
-									xCoor, yCoor, this.gridPanel);
-						}
-					}
-					if (buildingCodes[x][y] == 6) { // Windfarm
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(
-									ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor,
-									yCoor, this.gridPanel);
-						}
-					}
-					if (buildingCodes[x][y] == 7) { // School
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")), xCoor,
-									yCoor, this.gridPanel);
-						}
-					}
-					if (buildingCodes[x][y] == 8) { // House
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
-					}
-					if (buildingCodes[x][y] == 9) { // Farm
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")), xCoor,
-									yCoor, this.gridPanel);
-						}
-					}
-					if (buildingCodes[x][y] == 4) { // Boat
-						if (buildAnimationCounter >= buildAnimationLength) {
-							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
-									xCoor, yCoor, this.gridPanel);
-						}
-					}
-
+		
+		for (BuildingTile bt : this.buildingTiles) {
+			
+			int xCoor = bt.getXPos();
+			int yCoor = bt.getYPos();
+			
+			if (bt.getBuildingType().equals("Oil Refinery") && bt.goodiePainted == false) {
+				int yCoorT = yCoor;
+				while (yCoorT > yCoor - 50) {
+					yCoorT--;
 				}
-
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")),
+							xCoor, yCoor, this.gridPanel);
+				}
+			}
+			if (bt.getBuildingType().equals("Windfarm")) {//no goodie logic for windfarms for now
+				int yCoorT = yCoor;
+				while (yCoorT > yCoor - 50) {
+					yCoorT--;
+				}
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")),
+							xCoor, yCoor, this.gridPanel);
+				}
+			}
+			if (bt.getBuildingType().equals("Farm")) {//no goodie logic for windfarms for now
+				int yCoorT = yCoor;
+				while (yCoorT > yCoor - 50) {
+					yCoorT--;
+				}
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")),
+							xCoor, yCoor, this.gridPanel);
+				}
+			}
+			if (bt.getBuildingType().equals("School")) {//no goodie logic for windfarms for now
+				int yCoorT = yCoor;
+				while (yCoorT > yCoor - 50) {
+					yCoorT--;
+				}
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")),
+							xCoor, yCoor, this.gridPanel);
+				}
 			}
 		}
+
+//		for (int x = 0; x < 14; x++) {
+//			for (int y = 0; y < 9; y++) {
+//				if (buildingCodes[x][y] > 3) {
+//
+//					int xCoor = x * 50;
+//					int yCoor = y * 50;
+//					if (buildingCodes[x][y] == 5) { // Oil Refinery
+//						int yCoorT = yCoor;
+//						while (yCoorT > yCoor - 50) {
+//							yCoorT--;
+//						}
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(
+//									ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")),
+//									xCoor, yCoor, this.gridPanel);
+//						}
+//					}
+//					if (buildingCodes[x][y] == 6) { // Windfarm
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(
+//									ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor,
+//									yCoor, this.gridPanel);
+//						}
+//					}
+//					if (buildingCodes[x][y] == 7) { // School
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")), xCoor,
+//									yCoor, this.gridPanel);
+//						}
+//					}
+//					if (buildingCodes[x][y] == 8) { // House
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")),
+//									xCoor, yCoor, this.gridPanel);
+//						}
+//					}
+//					if (buildingCodes[x][y] == 9) { // Farm
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")), xCoor,
+//									yCoor, this.gridPanel);
+//						}
+//					}
+//					if (buildingCodes[x][y] == 4) { // Boat
+//						if (buildAnimationCounter >= buildAnimationLength) {
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
+//									xCoor, yCoor, this.gridPanel);
+//						}
+//					}
+//
+//				}
+//
+//			}
+//		}
 
 	}
 
@@ -1248,12 +1291,78 @@ public class GameScreen implements Runnable {
 			try {
 				System.out.println("Adding Fish Goodie");
 				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Fish_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+		if (buildingType.equals("Oil Refinery")) {
+			try {
+				System.out.println("Adding Oil Goodie");
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/trans_Oil_Refinery.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (buildingType.equals("Farm")) {
+			try {
+				System.out.println("Adding Corn Goodie");
+				//Farm.png is already transparent!
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Corn_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void eraseGoodie(BuildingTile buildingTile) {
+		if (buildingTile.buildingType.equals("Boat")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/water.jpg")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				buildingTile.goodiePainted = false;
+				this.envMeter.changeMeter(20);
+				System.out.println("Erasing fish goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (buildingTile.buildingType.equals("Oil Refinery")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/grass.jpg")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil Refinery.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				buildingTile.goodiePainted = false;
+				changeMoneyLabel(20);
+				System.out.println("Erasing oil goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (buildingTile.buildingType.equals("Farm")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/grass.jpg")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				buildingTile.goodiePainted = false;
+				changeMoneyLabel(20);
+				System.out.println("Erasing corn goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void changeMoneyLabel(int delta) {
+		this.moneyLbl.setText(Integer.toString(getMoney() + delta));
 	}
 	
 	// not needed anymore
