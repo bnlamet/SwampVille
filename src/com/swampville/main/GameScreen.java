@@ -68,7 +68,7 @@ public class GameScreen implements Runnable {
 	int infoAnimationLength = 42;
 	int infoAnimationCounter = 0;
 	
-	int timeLimit = 3;
+	int timeLimit = 1;
 
 	String currentlySelectedBuilding, difficulty;
 	boolean timeToBuild = false;
@@ -543,7 +543,7 @@ public class GameScreen implements Runnable {
 		}
 	}
 
-	public void updateBuildings() throws IOException {
+public void updateBuildings() throws IOException {
 
 		
 		for (BuildingTile bt : this.buildingTiles) {
@@ -610,61 +610,6 @@ public class GameScreen implements Runnable {
 				}
 			}
 		}
-		
-//		for (int x = 0; x < 14; x++) {
-//			for (int y = 0; y < 9; y++) {
-//				if (buildingCodes[x][y] > 3) {
-//
-//					int xCoor = x * 50;
-//					int yCoor = y * 50;
-//					if (buildingCodes[x][y] == 5) { // Oil Refinery
-//						int yCoorT = yCoor;
-//						while (yCoorT > yCoor - 50) {
-//							yCoorT--;
-//						}
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(
-//									ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")),
-//									xCoor, yCoor, this.gridPanel);
-//						}
-//					}
-//					if (buildingCodes[x][y] == 6) { // Windfarm
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(
-//									ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), xCoor,
-//									yCoor, this.gridPanel);
-//						}
-//					}
-//					if (buildingCodes[x][y] == 7) { // School
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")),
-//									xCoor, yCoor, this.gridPanel);
-//						}
-//					}
-//					if (buildingCodes[x][y] == 8) { // House
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")),
-//									xCoor, yCoor, this.gridPanel);
-//						}
-//					}
-//					if (buildingCodes[x][y] == 9) { // Farm
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")),
-//									xCoor, yCoor, this.gridPanel);
-//						}
-//					}
-//					if (buildingCodes[x][y] == 4) { // Boat
-//						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Boat.png")),
-//									xCoor, yCoor, this.gridPanel);
-//						}
-//					}
-//
-//				}
-//
-//			}
-//		}
-
 	}
 
 	public void updateMeters() {
@@ -1350,6 +1295,39 @@ public class GameScreen implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		if (buildingType.equals("School")) {
+			try {
+				System.out.println("Adding Apple Goodie");
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School0.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Apple_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (buildingType.equals("Windfarm")) {
+			try {
+				System.out.println("Adding Energy Goodie");
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Windfarm0.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Energy_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (buildingType.equals("House")) {
+			try {
+				System.out.println("Adding Person Goodie");
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/House.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Person_Goodie.png")), xPos, yPos, this.gridPanel);
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void eraseGoodie(BuildingTile buildingTile) {
@@ -1389,6 +1367,51 @@ public class GameScreen implements Runnable {
 				buildingTile.goodiePainted = false;
 				changeMoneyLabel(20);
 				System.out.println("Erasing corn goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (buildingTile.buildingType.equals("School")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/eraser.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				}
+				buildingTile.goodiePainted = false;
+				changeMoneyLabel(20);
+				System.out.println("Erasing apple goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (buildingTile.buildingType.equals("Windfarm")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/eraser.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Windfarm" + animationCount + ".png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				}
+				buildingTile.goodiePainted = false;
+				changeMoneyLabel(20);
+				System.out.println("Erasing energy goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (buildingTile.buildingType.equals("House")) {
+			try {
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/eraser.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/House.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				}
+				buildingTile.goodiePainted = false;
+				changeMoneyLabel(20);
+				System.out.println("Erasing person goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
 				return;
 			} catch (IOException e) {
 				e.printStackTrace();
