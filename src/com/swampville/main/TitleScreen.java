@@ -153,7 +153,7 @@ public class TitleScreen {
 	 * passing the frame and the difficulty param to it.
 	 * @throws IOException 
 	 */
-	public void transitionToGameScreen(String difficulty) throws IOException {
+	public void transitionToGameScreen() throws IOException {
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
 		
@@ -173,7 +173,7 @@ public class TitleScreen {
 	public void playBtnPressed() throws IOException {
 		frame.getContentPane().removeAll();
 		frame.getContentPane().repaint();
-		this.transitionToGameScreen("Easy");
+		this.transitionToGameScreen();
 	}
 	
 	/**

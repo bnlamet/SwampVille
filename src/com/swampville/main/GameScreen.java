@@ -3,23 +3,18 @@ package com.swampville.main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.io.File;
@@ -44,9 +39,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
-import javax.swing.Timer;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import net.miginfocom.swing.MigLayout;
 import timer.TimeFrame;
@@ -102,8 +94,10 @@ public class GameScreen implements Runnable {
 	int moneyLblDelta;
 	int oneSecCounter = 0;
 	int demoBuilding;
+	String demoBuildingPrime;
+	int demoBuildingPrimePrime;
 	int[][] buildingCodes = { { 0, 0, 0, 0, 0, 2, 2, 1, 1 }, { 0, 0, 0, 0, 2, 2, 1, 1, 1 },
-			{ 0, 0, 0, 0, 2, 1, 1, 1, 1 }, { 0, 0, 0, 0, 2, 2, 2, 1, 1 }, { 2, 0, 0, 2, 2, 2, 2, 2, 1 },
+			{ 0, demoBuilding, 0, 0, 2, 1, 1, 1, 1 }, { 0, 0, 0, 0, 2, 2, 2, 1, 1 }, { 2, 0, 0, 2, 2, 2, 2, 2, 1 },
 			{ 2, 2, 2, 2, 2, 0, 0, 2, 1 }, { 2, 0, 0, 2, 0, 0, 2, 2, 1 }, { 0, 0, 2, 2, 0, 0, 0, 2, 1 },
 			{ 0, 2, 2, 2, 0, 0, 0, 2, 1 }, { 2, 2, 2, 0, 0, 0, 0, 2, 1 }, { 2, 2, 2, 0, 0, 0, 0, 2, 1 },
 			{ 0, 2, 2, 0, 0, 2, 2, 2, 1 }, { 2, 2, 2, 2, 2, 2, 2, 1, 1 }, { 0, 0, 0, 2, 2, 1, 1, 1, 1 } };
@@ -122,26 +116,43 @@ public class GameScreen implements Runnable {
 		this.initializeGameScreen();
 		gameActive = true;
 
-		this.buildingTiles = new ArrayList<BuildingTile>();
-		
 		buildingCodes[2][1] = demoBuilding;
 		
+		this.buildingTiles = new ArrayList<BuildingTile>();
+		
 		if (demoBuilding == 5) {
-			addBuilding("Oil Refinery");
+			demoBuildingPrime = "Oil Refinery";
+			demoBuildingPrimePrime = Building.oilRefineryNumSecsTillGoodieFinal;
 		}
 		if (demoBuilding == 6) {
-			addBuilding("Windfarm");
+			demoBuildingPrime = "Windfarm";
+			demoBuildingPrimePrime = Building.windFarmNumSecsTillGoodieFinal;
 		}
 		if (demoBuilding == 7) {
-			addBuilding("School");
+			demoBuildingPrime = "School";
+			demoBuildingPrimePrime = Building.schoolNumSecsTillGoodieFinal;
 		}
 		if (demoBuilding == 8) {
-			addBuilding("House");
+			demoBuildingPrime = "House";
+			demoBuildingPrimePrime = Building.houseNumSecsTillGoodieFinal;
 		}
 		if (demoBuilding == 9) {
-			addBuilding("Farm");
+			demoBuildingPrime = "Farm";
+			demoBuildingPrimePrime = Building.farmNumSecsTillGoodieFinal;
 		}
-
+		
+		BuildingTile bt = new BuildingTile(demoBuildingPrime, 100, 50, demoBuildingPrimePrime);
+		buildingTiles.add(bt);
+		
+		for (int i = 0; i < 14; i++) {
+			System.out.println("");
+			for (int j = 0; j < 9; j++) {
+				System.out.print(buildingCodes[i][j]);
+			}
+		}
+		
+		
+		
 		ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
 		executor2.scheduleAtFixedRate(this, 0, 1, TimeUnit.MILLISECONDS);
 		Collections.synchronizedList(this.buildingTiles);
@@ -253,8 +264,6 @@ public class GameScreen implements Runnable {
 		t = new TimeFrame();
 		frame.getContentPane().add(t, "cell 1 5,grow, center");
 
-//		new ArcProgress(frame, 120);
-		
 		/////////////////////////////////////////////////////////////
 
 		// Create pop-up for the building list for later use
@@ -273,7 +282,6 @@ public class GameScreen implements Runnable {
 		 * environment.add(environmentLbl);
 		 */
 
-		
 		JLabel envImg = new JLabel();
 		ImageIcon environmentImg = new ImageIcon("src/swampimages/Blue_Recycle_Symbol.png");
 		envImg.setIcon(environmentImg);
@@ -356,11 +364,10 @@ public class GameScreen implements Runnable {
 				previousMouseYCorr = mouseYCorr;
 				mouseXCorr = gridCorr(e.getX(), e.getY())[0];
 				mouseYCorr = gridCorr(e.getX(), e.getY())[1];
-
-				eraseGoodieIfAtPosition(mouseXCorr, mouseYCorr);
 				
+				eraseGoodieIfAtPosition(mouseXCorr, mouseYCorr);
+
 				if (buildingCodes[mouseXCorr / 50][mouseYCorr / 50] == 2) {
-					
 					try {
 						BufferedImage hammerSlashedImg = ImageIO.read(new File("src/swampimages/Hammer_Slashed.png"));
 	                    JOptionPane.showMessageDialog(
@@ -380,7 +387,6 @@ public class GameScreen implements Runnable {
 				}
 				// For Testing Purposes:
 				System.out.println(mouseXCorr + ", " + mouseYCorr);
-				
 			}
 		});
 	}
@@ -469,7 +475,7 @@ public class GameScreen implements Runnable {
 
 	private void paintAllGoodies() {
 		for (BuildingTile bt : this.buildingTiles) {
-			if (bt.getGoodiePresent() == true) {
+			if (bt.getGoodiePresent() == true && bt.goodiePainted == false) {
 				this.paintGoodie(bt.getBuildingType(), bt.getXPos(), bt.getYPos());
 				bt.goodiePainted = true;
 			}
@@ -480,9 +486,12 @@ public class GameScreen implements Runnable {
 		oneSecCounter++;
 		buildAnimationCounter++;
 		infoAnimationCounter++;
+		eraseGoodieIfAtPosition(mouseXCorr, mouseYCorr);
+		
 		try {
 			makinMagic();
 			updateBuildings();
+			
 			paintAllGoodies();
 			
 			if (buildAnimationCounter >= buildAnimationLength) {
@@ -518,8 +527,9 @@ public class GameScreen implements Runnable {
 				for (BuildingTile bt: this.buildingTiles) {
 					bt.updateInOneSec();
 				}
+				
 			}
-
+			
 			System.out.println(this.buildingTiles);
 			if (t.getMinutes() == timeLimit) {
 				transitionToFutureScreen(calculateScore(), future);
@@ -536,6 +546,9 @@ public class GameScreen implements Runnable {
 			int xCoor = bt.getXPos();
 			int yCoor = bt.getYPos();
 			
+
+//			this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Corn_Goodie.png")), xPos, yPos, this.gridPanel);
+			
 			if (bt.getBuildingType().equals("Oil Refinery") && bt.goodiePainted == false) {
 				int yCoorT = yCoor;
 				while (yCoorT > yCoor - 50) {
@@ -547,7 +560,7 @@ public class GameScreen implements Runnable {
 							xCoor, yCoor, this.gridPanel);
 				}
 			}
-			if (bt.getBuildingType().equals("Windfarm")) {//no goodie logic for windfarms for now
+			if (bt.getBuildingType().equals("Windfarm") && bt.goodiePainted == false) {//no goodie logic for windfarms for now
 				int yCoorT = yCoor;
 				while (yCoorT > yCoor - 50) {
 					yCoorT--;
@@ -558,7 +571,7 @@ public class GameScreen implements Runnable {
 							xCoor, yCoor, this.gridPanel);
 				}
 			}
-			if (bt.getBuildingType().equals("Farm")) {//no goodie logic for windfarms for now
+			if (bt.getBuildingType().equals("Farm") && bt.goodiePainted == false) {//no goodie logic for windfarms for now
 				int yCoorT = yCoor;
 				while (yCoorT > yCoor - 50) {
 					yCoorT--;
@@ -569,7 +582,7 @@ public class GameScreen implements Runnable {
 							xCoor, yCoor, this.gridPanel);
 				}
 			}
-			if (bt.getBuildingType().equals("School")) {//no goodie logic for windfarms for now
+			if (bt.getBuildingType().equals("School") && bt.goodiePainted == false) {//no goodie logic for windfarms for now
 				int yCoorT = yCoor;
 				while (yCoorT > yCoor - 50) {
 					yCoorT--;
@@ -580,8 +593,19 @@ public class GameScreen implements Runnable {
 							xCoor, yCoor, this.gridPanel);
 				}
 			}
+			if (bt.getBuildingType().equals("House") && bt.goodiePainted == false) {//no goodie logic for windfarms for now
+				int yCoorT = yCoor;
+				while (yCoorT > yCoor - 50) {
+					yCoorT--;
+				}
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/House.png")),
+							xCoor, yCoor, this.gridPanel);
+				}
+			}
 		}
-
+		
 //		for (int x = 0; x < 14; x++) {
 //			for (int y = 0; y < 9; y++) {
 //				if (buildingCodes[x][y] > 3) {
@@ -608,8 +632,8 @@ public class GameScreen implements Runnable {
 //					}
 //					if (buildingCodes[x][y] == 7) { // School
 //						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School" + animationCount + ".png")), xCoor,
-//									yCoor, this.gridPanel);
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/School.png")),
+//									xCoor, yCoor, this.gridPanel);
 //						}
 //					}
 //					if (buildingCodes[x][y] == 8) { // House
@@ -620,8 +644,8 @@ public class GameScreen implements Runnable {
 //					}
 //					if (buildingCodes[x][y] == 9) { // Farm
 //						if (buildAnimationCounter >= buildAnimationLength) {
-//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")), xCoor,
-//									yCoor, this.gridPanel);
+//							this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")),
+//									xCoor, yCoor, this.gridPanel);
 //						}
 //					}
 //					if (buildingCodes[x][y] == 4) { // Boat
@@ -880,14 +904,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnOilRefinery, gbc_rdbtnOilRefinery);
 		buildBtns.add(rdbtnOilRefinery);
 
-		JLabel lblOilDesc = new JLabel("Costs $100");
+		JLabel lblOilDesc = new JLabel("Costs: 100 coin");
 		GridBagConstraints gbc_lblOilDesc = new GridBagConstraints();
 		gbc_lblOilDesc.insets = new Insets(0, 0, 5, 5);
 		gbc_lblOilDesc.gridx = 2;
 		gbc_lblOilDesc.gridy = 0;
 		buildPopup.add(lblOilDesc, gbc_lblOilDesc);
 
-		JLabel lblOilMeterEffect = new JLabel("-2 env/sec, +$20/sec");
+		JLabel lblOilMeterEffect = new JLabel("-2 env/sec, +20 coin/sec");
 		GridBagConstraints gbc_lblOilMeterEffect = new GridBagConstraints();
 		gbc_lblOilMeterEffect.insets = new Insets(0, 0, 5, 0);
 		gbc_lblOilMeterEffect.gridx = 3;
@@ -906,14 +930,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnWindTurbine, gbc_rdbtnWindTurbine);
 		buildBtns.add(rdbtnWindTurbine);
 
-		JLabel label = new JLabel("Costs $20");
+		JLabel label = new JLabel("Costs: 20 coin");
 		GridBagConstraints gbc_label = new GridBagConstraints();
 		gbc_label.insets = new Insets(0, 0, 5, 5);
 		gbc_label.gridx = 2;
 		gbc_label.gridy = 1;
 		buildPopup.add(label, gbc_label);
 
-		JLabel label_1 = new JLabel("+1 env/sec, +$1/sec,");
+		JLabel label_1 = new JLabel("+1 env/sec, +1 coin/sec,");
 		GridBagConstraints gbc_label_1 = new GridBagConstraints();
 		gbc_label_1.insets = new Insets(0, 0, 5, 0);
 		gbc_label_1.gridx = 3;
@@ -932,14 +956,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnSchool, gbc_rdbtnSchool);
 		buildBtns.add(rdbtnSchool);
 
-		JLabel label_2 = new JLabel("Costs $150");
+		JLabel label_2 = new JLabel("Costs: 150 coin");
 		GridBagConstraints gbc_label_2 = new GridBagConstraints();
 		gbc_label_2.insets = new Insets(0, 0, 5, 5);
 		gbc_label_2.gridx = 2;
 		gbc_label_2.gridy = 2;
 		buildPopup.add(label_2, gbc_label_2);
 
-		JLabel label_3 = new JLabel("+5 ppl/sec, +$3/sec");
+		JLabel label_3 = new JLabel("+5 ppl/sec, +3 coin/sec");
 		GridBagConstraints gbc_label_3 = new GridBagConstraints();
 		gbc_label_3.insets = new Insets(0, 0, 5, 0);
 		gbc_label_3.gridx = 3;
@@ -958,7 +982,7 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnHouse, gbc_rdbtnHouse);
 		buildBtns.add(rdbtnHouse);
 
-		JLabel label_4 = new JLabel("Costs $10");
+		JLabel label_4 = new JLabel("Costs: 10 coin");
 		GridBagConstraints gbc_label_4 = new GridBagConstraints();
 		gbc_label_4.insets = new Insets(0, 0, 5, 5);
 		gbc_label_4.gridx = 2;
@@ -984,14 +1008,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnFarm, gbc_rdbtnFarm);
 		buildBtns.add(rdbtnFarm);
 
-		JLabel label_6 = new JLabel("Costs $80");
+		JLabel label_6 = new JLabel("Costs: 80 coin");
 		GridBagConstraints gbc_label_6 = new GridBagConstraints();
 		gbc_label_6.insets = new Insets(0, 0, 5, 5);
 		gbc_label_6.gridx = 2;
 		gbc_label_6.gridy = 4;
 		buildPopup.add(label_6, gbc_label_6);
 
-		JLabel label_7 = new JLabel("+4 env/sec, +$4/sec");
+		JLabel label_7 = new JLabel("+4 env/sec, +4 coin/sec");
 		GridBagConstraints gbc_label_7 = new GridBagConstraints();
 		gbc_label_7.insets = new Insets(0, 0, 5, 0);
 		gbc_label_7.gridx = 3;
@@ -1010,14 +1034,14 @@ public class GameScreen implements Runnable {
 		buildPopup.add(rdbtnBoat, gbc_rdbtnBoat);
 		buildBtns.add(rdbtnBoat);
 
-		JLabel label_8 = new JLabel("Costs $5");
+		JLabel label_8 = new JLabel("Costs: 5 coin");
 		GridBagConstraints gbc_label_8 = new GridBagConstraints();
 		gbc_label_8.insets = new Insets(0, 0, 5, 5);
 		gbc_label_8.gridx = 2;
 		gbc_label_8.gridy = 5;
 		buildPopup.add(label_8, gbc_label_8);
 
-		JLabel label_9 = new JLabel("+4 env/sec, +$4/sec");
+		JLabel label_9 = new JLabel("+4 env/sec, +4 coin/sec");
 		GridBagConstraints gbc_label_9 = new GridBagConstraints();
 		gbc_label_9.insets = new Insets(0, 0, 5, 0);
 		gbc_label_9.gridx = 3;
@@ -1285,7 +1309,7 @@ public class GameScreen implements Runnable {
 			}
 		}
 	}
-
+	
 	public void paintGoodie(String buildingType, int xPos, int yPos) {
 		if (buildingType.equals("Boat")) {
 			try {
@@ -1300,7 +1324,7 @@ public class GameScreen implements Runnable {
 		if (buildingType.equals("Oil Refinery")) {
 			try {
 				System.out.println("Adding Oil Goodie");
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/trans_Oil_Refinery.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil Refinery0.png")), xPos, yPos, this.gridPanel);
 				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil_Goodie.png")), xPos, yPos, this.gridPanel);
 				return;
 			} catch (IOException e) {
@@ -1312,7 +1336,7 @@ public class GameScreen implements Runnable {
 			try {
 				System.out.println("Adding Corn Goodie");
 				//Farm.png is already transparent!
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), xPos, yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm0.png")), xPos, yPos, this.gridPanel);
 				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Corn_Goodie.png")), xPos, yPos, this.gridPanel);
 				return;
 			} catch (IOException e) {
@@ -1337,8 +1361,10 @@ public class GameScreen implements Runnable {
 		}
 		if (buildingTile.buildingType.equals("Oil Refinery")) {
 			try {
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/grass.jpg")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Oil Refinery.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/eraser.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Oil Refinery" + animationCount + ".png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				}
 				buildingTile.goodiePainted = false;
 				changeMoneyLabel(20);
 				System.out.println("Erasing oil goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
@@ -1349,8 +1375,11 @@ public class GameScreen implements Runnable {
 		}
 		if (buildingTile.buildingType.equals("Farm")) {
 			try {
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/grass.jpg")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
-				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/Farm.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				this.gridPanel.getGraphics().drawImage(ImageIO.read(new File("src/swampimages/eraser.png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				if (buildAnimationCounter >= buildAnimationLength) {
+					this.gridPanel.getGraphics().drawImage(
+							ImageIO.read(new File("src/swampimages/Farm" + animationCount + ".png")), buildingTile.xPos, buildingTile.yPos, this.gridPanel);
+				}
 				buildingTile.goodiePainted = false;
 				changeMoneyLabel(20);
 				System.out.println("Erasing corn goodie at (" + buildingTile.xPos + ", " + buildingTile.yPos + ")");
@@ -1364,7 +1393,7 @@ public class GameScreen implements Runnable {
 	public void changeMoneyLabel(int delta) {
 		this.moneyLbl.setText(Integer.toString(getMoney() + delta));
 	}
-	
+
 	// not needed anymore
 	public void drawGridlines() {
 		Graphics gridPanelGraphicsContext = this.gridPanel.getGraphics();
@@ -1384,5 +1413,5 @@ public class GameScreen implements Runnable {
 			xCount++;
 		}
 	}
-	
+
 }
