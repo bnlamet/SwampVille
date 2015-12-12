@@ -39,6 +39,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import net.miginfocom.swing.MigLayout;
 import timer.TimeFrame;
@@ -141,8 +143,10 @@ public class GameScreen implements Runnable {
 			demoBuildingPrimePrime = Building.farmNumSecsTillGoodieFinal;
 		}
 		
-		BuildingTile bt = new BuildingTile(demoBuildingPrime, 100, 50, demoBuildingPrimePrime);
-		buildingTiles.add(bt);
+		if (demoBuilding > 0) {
+			BuildingTile bt = new BuildingTile(demoBuildingPrime, 100, 50, demoBuildingPrimePrime);
+			buildingTiles.add(bt);
+		}
 		
 		for (int i = 0; i < 14; i++) {
 			System.out.println("");
@@ -201,6 +205,7 @@ public class GameScreen implements Runnable {
 		// stops everything from shifting. I think. Regardless, it works as of
 		// now.
 
+		
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
@@ -1212,6 +1217,7 @@ public class GameScreen implements Runnable {
 		buildPopup.getRootPane().setBorder(BorderFactory.createBevelBorder(0));
 		buildPopup.setVisible(false);
 		buildPopup.setUndecorated(true);
+		buildPopup.setAlwaysOnTop(true);
 
 	}
 
